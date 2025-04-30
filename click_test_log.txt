@@ -1,0 +1,165 @@
+--- KATEGORIE-AUSWAHL CLICK TEST ---
+2025-04-29T23:42:56.726Z - Test gestartet
+2025-04-29T23:42:56.729Z - Starte Entwicklungsserver...
+2025-04-29T23:43:01.751Z - Server sollte gestartet sein.
+2025-04-29T23:43:01.751Z - Starte Browser...
+2025-04-29T23:43:02.263Z - Öffne Spielseite...
+2025-04-29T23:43:03.163Z - Warte auf Setup-Bildschirm...
+2025-04-29T23:43:03.181Z - Starte Spiel...
+2025-04-29T23:43:03.242Z - Warte auf Spielkarten...
+2025-04-29T23:43:03.876Z - Spielkarten sind sichtbar.
+2025-04-29T23:43:03.886Z - Aktueller Spielstatus: Select a Category
+2025-04-29T23:43:03.904Z - Anzahl der Kategoriebuttons: 6
+2025-04-29T23:43:03.921Z - Anzahl deaktivierter Buttons: 6
+2025-04-29T23:43:03.921Z - FEHLER: Alle Buttons sind deaktiviert!
+2025-04-29T23:43:03.923Z - Performance-Metrics:
+2025-04-29T23:43:03.924Z - [
+  {
+    "name": "Timestamp",
+    "value": 2745.053704
+  },
+  {
+    "name": "AudioHandlers",
+    "value": 0
+  },
+  {
+    "name": "AudioWorkletProcessors",
+    "value": 0
+  },
+  {
+    "name": "Documents",
+    "value": 3
+  },
+  {
+    "name": "Frames",
+    "value": 1
+  },
+  {
+    "name": "JSEventListeners",
+    "value": 155
+  },
+  {
+    "name": "LayoutObjects",
+    "value": 130
+  },
+  {
+    "name": "MediaKeySessions",
+    "value": 0
+  },
+  {
+    "name": "MediaKeys",
+    "value": 0
+  },
+  {
+    "name": "Nodes",
+    "value": 170
+  },
+  {
+    "name": "Resources",
+    "value": 29
+  },
+  {
+    "name": "ContextLifecycleStateObservers",
+    "value": 6
+  },
+  {
+    "name": "V8PerContextDatas",
+    "value": 4
+  },
+  {
+    "name": "WorkerGlobalScopes",
+    "value": 0
+  },
+  {
+    "name": "UACSSResources",
+    "value": 0
+  },
+  {
+    "name": "RTCPeerConnections",
+    "value": 0
+  },
+  {
+    "name": "ResourceFetchers",
+    "value": 3
+  },
+  {
+    "name": "AdSubframes",
+    "value": 0
+  },
+  {
+    "name": "DetachedScriptStates",
+    "value": 2
+  },
+  {
+    "name": "ArrayBufferContents",
+    "value": 0
+  },
+  {
+    "name": "LayoutCount",
+    "value": 46
+  },
+  {
+    "name": "RecalcStyleCount",
+    "value": 79
+  },
+  {
+    "name": "LayoutDuration",
+    "value": 0.064745
+  },
+  {
+    "name": "RecalcStyleDuration",
+    "value": 0.025313
+  },
+  {
+    "name": "DevToolsCommandDuration",
+    "value": 0.014226
+  },
+  {
+    "name": "ScriptDuration",
+    "value": 0.089264
+  },
+  {
+    "name": "V8CompileDuration",
+    "value": 0.000071
+  },
+  {
+    "name": "TaskDuration",
+    "value": 0.419541
+  },
+  {
+    "name": "TaskOtherDuration",
+    "value": 0.225922
+  },
+  {
+    "name": "ThreadTime",
+    "value": 0.292057
+  },
+  {
+    "name": "ProcessTime",
+    "value": 0.765625
+  },
+  {
+    "name": "JSHeapUsedSize",
+    "value": 3578364
+  },
+  {
+    "name": "JSHeapTotalSize",
+    "value": 5939200
+  },
+  {
+    "name": "FirstMeaningfulPaint",
+    "value": 2743.759401
+  },
+  {
+    "name": "DomContentLoaded",
+    "value": 2743.647464
+  },
+  {
+    "name": "NavigationStart",
+    "value": 2743.400774
+  }
+]
+2025-04-29T23:43:03.943Z - Test abgeschlossen.
+2025-04-29T23:43:03.944Z - Schließe Browser...
+2025-04-29T23:43:04.126Z - Beende Server...
+2025-04-29T23:43:04.127Z - Test beendet.

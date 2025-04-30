@@ -1,0 +1,764 @@
+/* Global Styles */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  font-family: 'Press Start 2P', monospace;
+  overflow-x: hidden;
+  background-color: #001f3f;
+  color: #fff;
+  line-height: 1.6;
+}
+
+/* Retro Scanlines Effect */
+.scanline-overlay {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+.landing-background {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #e0f7fa, #001f3f);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+}
+
+/* Title Styles */
+.game-title {
+  text-align: center;
+  font-size: 3.5rem;
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff;
+  margin-bottom: 1rem;
+  animation: shimmer 6s infinite;
+  user-select: none;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 5px #00ffff;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    transform: translateY(0);
+    text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+  }
+  50% {
+    transform: translateY(3px);
+    text-shadow: 0 0 15px #00ffff, 0 0 25px #00ffff;
+  }
+}
+
+/* Button Styles */
+.main-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.play-button, .cat-library, .next-phase-button, .restart-button, .category-button {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1rem;
+  padding: 1rem 2rem;
+  background-color: #121212;
+  color: #00ffff;
+  border: 2px solid #00ffff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.play-button:hover, .cat-library:hover, .next-phase-button:hover, .restart-button:hover {
+  background-color: #00ffff;
+  color: #121212;
+  transform: translateY(-3px);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.disabled:hover {
+  background-color: #121212;
+  color: #00ffff;
+  transform: none;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.cat-library {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+}
+
+/* Music Control */
+.music-control {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  width: 60px;
+  height: 40px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.music-control:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+  transform: scale(1.05);
+}
+
+.cassette-icon {
+  width: 40px;
+  height: 25px;
+  background-color: #222;
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.wheel {
+  width: 10px;
+  height: 10px;
+  background-color: #444;
+  border-radius: 50%;
+  position: relative;
+}
+
+.wheel::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 1px;
+  background-color: #222;
+  transform: translate(-50%, -50%);
+}
+
+.playing .wheel {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Library Modal */
+.library-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 800px;
+  height: 80%;
+  background-color: rgba(0, 31, 63, 0.95);
+  border: 3px solid #00ffff;
+  border-radius: 10px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.library-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #00ffff;
+  padding-bottom: 1rem;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: #00ffff;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.card-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Game Container */
+.game-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #001f3f, #000a14);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-board {
+  width: 100%;
+  max-width: 1200px;
+  position: relative;
+  padding: 1rem;
+}
+
+/* Player Stats */
+.player-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto 1rem auto;
+}
+
+.player-stats {
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: 1px solid #00ffff;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 573px;  /* Match card width */
+}
+
+.tie-pile-info {
+  text-align: center;
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background-color: rgba(255, 255, 0, 0.2);
+  border-radius: 5px;
+  font-size: 0.8rem;
+  display: inline-block;
+}
+
+/* Card Container */
+.cards-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 2rem auto;
+  flex-wrap: nowrap;
+  pointer-events: auto !important;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.player1-card, .player2-card {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Card Display Component */
+.card-display {
+  width: 573px;  /* 882px - 35% */
+  height: 840px; /* 1292px - 35% */
+  background-color: #222;
+  border: 2px solid #00ffff;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0.8rem;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  pointer-events: auto !important;
+}
+
+.card-display:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 255, 255, 0.6);
+}
+
+.card-winner {
+  border-color: gold;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3), 0 0 20px gold;
+  animation: winner-pulse 1.5s infinite alternate;
+}
+
+@keyframes winner-pulse {
+  0% { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3), 0 0 10px gold; }
+  100% { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3), 0 0 25px gold; }
+}
+
+.card-name {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  color: #00ffff;
+}
+
+.card-image-container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+  border-radius: 5px;
+  background-color: #000;
+}
+
+.card-image {
+  width: 572px;  /* 880px - 35% */
+  height: 839px; /* 1290px - 35% */
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+/* Hide the attributes list as requested */
+.card-attributes {
+  display: none;
+}
+
+/* Keep the attribute styles for when they're used in the HUD */
+.attribute {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #333;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.attribute:hover {
+  background-color: rgba(0, 255, 255, 0.1);
+}
+
+.attribute.highlighted {
+  background-color: rgba(255, 255, 0, 0.2);
+  border-left: 3px solid yellow;
+  padding-left: 0.25rem;
+}
+
+.attribute.selectable {
+  cursor: pointer;
+  background-color: rgba(0, 255, 255, 0.1);
+  border-left: 3px solid #00ffff;
+  padding-left: 0.5rem;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.attribute.selectable:hover {
+  background-color: rgba(0, 255, 255, 0.3);
+  transform: translateX(3px);
+}
+
+.select-indicator {
+  color: #00ffff;
+  margin-left: 5px;
+  animation: blink 1s infinite;
+  position: absolute;
+  right: 8px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Adjust card quote position since attributes are now hidden */
+.card-quote {
+  font-size: 0.6rem;
+  font-style: italic;
+  text-align: center;
+  margin-top: 1rem;
+  color: #ccc;
+}
+
+.card-back {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: #000a14;
+  background-image: linear-gradient(45deg, #001f3f 25%, transparent 25%),
+                    linear-gradient(-45deg, #001f3f 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #001f3f 75%),
+                    linear-gradient(-45deg, transparent 75%, #001f3f 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+/* HUD */
+.hud-container {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #00ffff;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 200px;
+}
+
+.phase-indicator {
+  color: #00ffff;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  position: relative;
+  z-index: 20;
+}
+
+.category-button {
+  font-size: 0.6rem;
+  padding: 0.5rem;
+  z-index: 25;
+}
+
+.next-phase-button, .restart-button {
+  font-size: 0.7rem;
+  padding: 0.7rem;
+}
+
+/* Game Over Screen */
+.game-over-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  gap: 2rem;
+}
+
+.game-over-overlay h2 {
+  font-size: 3rem;
+  color: gold;
+  text-shadow: 0 0 10px gold;
+  animation: victory-text 2s ease-in-out infinite;
+}
+
+@keyframes victory-text {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Setup Screen */
+.setup-screen {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #001f3f, #000a14);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.setup-form {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 2rem;
+  border-radius: 10px;
+  border: 2px solid #00ffff;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.setup-form label {
+  color: #00ffff;
+  font-size: 0.8rem;
+}
+
+.setup-form input {
+  font-family: 'Press Start 2P', monospace;
+  padding: 0.8rem;
+  background-color: #000;
+  border: 1px solid #00ffff;
+  color: #fff;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.setup-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.5rem;
+  background: linear-gradient(to bottom, #001f3f, #000a14);
+  color: #00ffff;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .cards-container {
+    max-width: 100%;
+    padding: 0 1rem;
+    justify-content: center;
+  }
+
+  .card-display {
+    width: 573px;
+    height: 840px;
+    max-width: 100%;
+  }
+
+  .card-image {
+    width: 572px;
+    height: 839px;
+    max-width: 100%;
+  }
+
+  .player-stats {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 1000px) {
+  .cards-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card-display {
+    width: 573px;
+    height: 840px;
+    max-width: 90%;
+    margin-bottom: 1.5rem;
+  }
+
+  .player-stats {
+    width: 573px;
+    max-width: 90%;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-title {
+    font-size: 2.5rem;
+  }
+
+  .cards-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .card-display {
+    width: 90%;
+    max-width: 400px;
+    height: auto;
+    aspect-ratio: 573 / 840;
+  }
+
+  .card-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 572 / 839;
+  }
+
+  .player-info {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .player-stats {
+    width: 90%;
+    max-width: 400px;
+  }
+
+  .hud-container {
+    width: 100%;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-title {
+    font-size: 2rem;
+  }
+
+  .card-display {
+    width: 95%;
+    max-width: 300px;
+    height: auto;
+    aspect-ratio: 573 / 840;
+  }
+
+  .attribute {
+    font-size: 0.6rem;
+  }
+}
+
+.category-button.selectable {
+  animation: button-pulse 1.5s infinite alternate;
+  cursor: pointer;
+  border-color: #00ffff;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.category-button.selectable:hover {
+  background-color: rgba(0, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+@keyframes button-pulse {
+  0% { box-shadow: 0 0 5px rgba(0, 255, 255, 0.3); }
+  100% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.8); }
+}
+
+/* Debug styles */
+.debug-highlight {
+  outline: 2px solid red !important;
+  position: relative;
+}
+
+.debug-highlight::after {
+  content: "Clickable";
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  background: red;
+  color: white;
+  padding: 2px 5px;
+  font-size: 10px;
+  z-index: 9999;
+}
+
+/* Enhanced clickable styles */
+[role="button"],
+button,
+.category-button,
+.attribute.selectable {
+  cursor: pointer !important;
+  position: relative;
+  -webkit-tap-highlight-color: rgba(0, 255, 255, 0.3) !important;
+  touch-action: manipulation;
+}
+
+/* Make clickable areas larger */
+.attribute.selectable {
+  padding: 12px 8px !important;
+  margin: 5px 0 !important;
+}
+
+/* Prevent text selection on clickable elements */
+.attribute.selectable,
+.category-button,
+[role="button"],
+button {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Enhance active states */
+.attribute.selectable:active,
+.category-button:active,
+[role="button"]:active,
+button:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+/* Force hardware acceleration */
+.attribute.selectable,
+.category-button,
+button {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* Additional visual feedback on hover */
+.attribute.selectable:hover::before {
+  content: "👉";
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Fix for iOS touch */
+@media (hover: none) {
+  .attribute.selectable,
+  .category-button,
+  button {
+    min-height: 44px; /* Apple's recommendation for touch targets */
+  }
+}
