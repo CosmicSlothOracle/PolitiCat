@@ -37,7 +37,12 @@ const config = {
 export async function connectToPeer(signalingServerUrl: string): Promise<boolean> {
   try {
     // Connect to signaling server
+    // The signalingServerUrl should already include the room parameter
+    // e.g., "wss://example.com?room=ABC123"
     socket = new WebSocket(signalingServerUrl);
+
+    // Log connection attempt
+    console.log(`Connecting to signaling server: ${signalingServerUrl}`);
 
     // Create RTCPeerConnection
     peerConnection = new RTCPeerConnection(config);

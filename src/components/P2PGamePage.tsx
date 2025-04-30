@@ -57,15 +57,24 @@ export const P2PGamePage: React.FC = () => {
 
     // Connect to signaling server with room ID
     setConnectionStatus('connecting');
-    const signalingUrlWithRoom = `${signalingUrl}?room=${newRoomId}`;
-    const success = await connectToPeer(signalingUrlWithRoom);
 
-    if (success) {
-      // Initialize game as host once connected
-      gameManager.initGame(remoteName || 'Opponent', true);
-      setConnectionStatus('connected');
-    } else {
-      setConnectionError('Failed to connect to signaling server');
+    // Ensure the room parameter is properly added to the URL
+    const signalingUrlWithRoom = `${signalingUrl}${signalingUrl.includes('?') ? '&' : '?'}room=${newRoomId}`;
+    console.log(`Connecting to signaling server as host: ${signalingUrlWithRoom}`);
+
+    try {
+      const success = await connectToPeer(signalingUrlWithRoom);
+
+      if (success) {
+        // Initialize game as host once connected
+        gameManager.initGame(remoteName || 'Opponent', true); // Set as initiator
+        setConnectionStatus('connected');
+      } else {
+        setConnectionError('Failed to connect to signaling server');
+        setConnectionStatus('disconnected');
+      }
+    } catch (error) {
+      setConnectionError(`Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setConnectionStatus('disconnected');
     }
   }, [gameManager, remoteName, signalingUrl]);
@@ -78,23 +87,30 @@ export const P2PGamePage: React.FC = () => {
     setConnectionStatus('connecting');
 
     // Connect to signaling server with provided room ID
-    const signalingUrlWithRoom = `${signalingUrl}?room=${roomId}`;
-    const success = await connectToPeer(signalingUrlWithRoom);
+    const signalingUrlWithRoom = `${signalingUrl}${signalingUrl.includes('?') ? '&' : '?'}room=${roomId}`;
+    console.log(`Connecting to signaling server as guest: ${signalingUrlWithRoom}`);
 
-    if (success) {
-      // Send our player info to the host
-      sendPlayerInfo({
-        name: playerName,
-        deck: [],
-        isAI: false
-      });
+    try {
+      const success = await connectToPeer(signalingUrlWithRoom);
 
-      // Initialize as non-initiator (will wait for game state)
-      gameManager.initGame(remoteName || 'Host', false);
+      if (success) {
+        // Send our player info to the host
+        sendPlayerInfo({
+          name: playerName,
+          deck: [],
+          isAI: false
+        });
 
-      setConnectionStatus('connected');
-    } else {
-      setConnectionError('Failed to connect to room');
+        // Initialize as non-initiator (will wait for game state)
+        gameManager.initGame(remoteName || 'Host', false);
+
+        setConnectionStatus('connected');
+      } else {
+        setConnectionError('Failed to connect to room');
+        setConnectionStatus('disconnected');
+      }
+    } catch (error) {
+      setConnectionError(`Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setConnectionStatus('disconnected');
     }
   }, [gameManager, roomId, playerName, signalingUrl, remoteName]);

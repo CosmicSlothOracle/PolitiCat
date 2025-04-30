@@ -1,0 +1,16 @@
+{
+  "name": "politicat-signaling",
+  "version": "1.0.0",
+  "description": "WebRTC signaling server for PolitiCat",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "ws": "^8.13.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
