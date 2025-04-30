@@ -36,6 +36,11 @@ const LandingPage: React.FC = () => {
     navigate('/play');
   };
 
+  // Handle navigation to multiplayer game
+  const handlePlayMultiplayer = () => {
+    navigate('/multiplayer');
+  };
+
   // Toggle music playback
   const toggleMusic = () => {
     setIsMusicPlaying(!isMusicPlaying);
@@ -75,9 +80,8 @@ const LandingPage: React.FC = () => {
           Play Against AI
         </button>
         <button
-          className="play-button disabled"
-          disabled
-          title="Coming in a future update"
+          className="play-button"
+          onClick={handlePlayMultiplayer}
         >
           Play Against a Friend
         </button>

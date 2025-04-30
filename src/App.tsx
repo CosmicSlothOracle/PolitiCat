@@ -1,7 +1,8 @@
-import React from "react";
+import * as React from "react";
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import { InGamePage } from './components/InGamePage';
+import { P2PGamePage } from './components/P2PGamePage';
 
 // Create router with future flags
 const router = createBrowserRouter(
@@ -13,6 +14,10 @@ const router = createBrowserRouter(
     {
       path: "/play",
       element: <InGamePage />
+    },
+    {
+      path: "/multiplayer",
+      element: <P2PGamePage />
     }
   ],
   {

@@ -4,7 +4,6 @@ import {
   selectCategory,
   compareValues,
   resolveWinner,
-  handleTie,
   checkGameEnd
 } from '../game/gameEngine';
 
@@ -27,7 +26,6 @@ describe('Game Engine - Integration Test', () => {
     expect(gameWithCards.topCard2).toBeDefined();
 
     // Schritt 3: Spieler wählt Kategorie basierend auf eigener Karte
-    const card = gameWithCards.topCard1!;
     const categoryToSelect = Category.CHARISMA; // z.B. Testweise CHARISMA nehmen
 
     const gameCategorySelected = selectCategory(gameWithCards, categoryToSelect);

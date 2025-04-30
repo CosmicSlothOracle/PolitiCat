@@ -19,6 +19,26 @@ This approach allows us to:
 - Make structural changes without worrying about asset management
 - Ensure a clean, maintainable codebase
 
+## New P2P Multiplayer Feature
+
+The game now supports peer-to-peer multiplayer using WebRTC technology:
+
+- Players can create or join game rooms with unique codes
+- Direct peer-to-peer communication with no game state on the server
+- Minimal signaling server only used for connection establishment
+- Real-time gameplay between two players over the internet
+
+### Signaling Server
+
+The P2P functionality requires a simple signaling server for establishing connections:
+
+```bash
+# Run the signaling server
+node server.js
+```
+
+The signaling server can be deployed to platforms like Render, Fly.io, or Heroku.
+
 ## Installation
 
 ```bash
@@ -43,9 +63,11 @@ npm run build
 src/
   components/       # UI components
   game/             # Game logic and data
+  network/          # WebRTC and P2P communication
   styles/           # CSS styles
 public/
   cards/            # Card images (to be used in final version)
+server.js           # WebRTC signaling server
 ```
 
 ## Adding Assets

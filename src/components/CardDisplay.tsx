@@ -34,7 +34,7 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
       console.log('Card is ready for category selection', card.name);
       console.log('Categories available:', categoryMap.map(c => c.key));
     }
-  }, [isCategorySelectable, card.name]);
+  }, [isCategorySelectable, card.name, categoryMap]);
 
   // Add forced focus for keyboard accessibility
   const cardRef = useRef<HTMLDivElement>(null);
@@ -43,6 +43,33 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
       cardRef.current.focus();
     }
   }, [isCategorySelectable]);
+
+  // Handle category selection
+  const handleCategoryClick = (category: Category) => {
+    if (isCategorySelectable && onCategorySelect) {
+      onCategorySelect(category);
+    }
+  };
+
+  // Helper function to get the category name
+  const getCategoryName = (category: Category): string => {
+    switch (category) {
+      case Category.CHARISMA:
+        return 'Charisma';
+      case Category.LEADERSHIP:
+        return 'Leadership';
+      case Category.INFLUENCE:
+        return 'Influence';
+      case Category.INTEGRITY:
+        return 'Integrity';
+      case Category.TRICKERY:
+        return 'Trickery';
+      case Category.WEALTH:
+        return 'Wealth';
+      default:
+        return 'Unknown';
+    }
+  };
 
   return (
     <div
@@ -56,7 +83,23 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
           <div className="card-image-container">
             <img src={card.imagePath} alt={card.name} className="card-image" />
           </div>
-          {/* Category attributes have been removed as requested */}
+          {isVisible && (
+            <div className="card-attributes">
+              {categoryMap.map(category => (
+                <div
+                  key={category.key}
+                  className={`attribute ${isCategorySelectable ? 'selectable' : ''} ${selectedCategory === category.key ? 'highlighted' : ''}`}
+                  onClick={() => handleCategoryClick(category.key)}
+                >
+                  <span>{getCategoryName(category.key)}</span>
+                  <span>{category.value}</span>
+                  {isCategorySelectable && (
+                    <span className="select-indicator">→</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
           {card.quote && <p className="card-quote">"{card.quote}"</p>}
         </>
       ) : (

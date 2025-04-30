@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import GameBoard from './GameBoard';
 import { GameLogger } from '../ui/GameLogger';
 import { DebugPanel } from './DebugPanel';
@@ -19,18 +18,6 @@ export const InGamePage: React.FC = () => {
   const [game, setGame] = useState<GameContext | null>(null);
   const [playerName, setPlayerName] = useState<string>('Player 1');
   const [showSetup, setShowSetup] = useState<boolean>(true);
-  const navigate = useNavigate();
-
-  // 🛠 Dummy-Debug-Funktionen für DebugPanel
-  const enableClickHighlighting = () => {
-    console.log('[Debug] Click highlighting ENABLED');
-    // Hier könnte ein Overlay o. Ä. getriggert werden
-  };
-
-  const disableClickHighlighting = () => {
-    console.log('[Debug] Click highlighting DISABLED');
-    // Hier könnte ein Overlay entfernt werden
-  };
 
   // Initialisiere das Spiel nach Setup
   useEffect(() => {
@@ -42,7 +29,7 @@ export const InGamePage: React.FC = () => {
         setGame(prev => prev ? { ...prev, state: GameState.DRAW_PHASE } : null);
       }, 500);
     }
-  }, [showSetup, playerName]);
+  }, [showSetup, playerName, game]);
 
   // GameState-Verwaltung
   useEffect(() => {
