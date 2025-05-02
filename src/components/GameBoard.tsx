@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import CardDisplay from './CardDisplay';
 import { HUD } from './HUD';
-import { Category, GameContext, GameState } from '../game/types';
+import { Category, GameContext, GameState, Card } from '../game/types';
 
 interface GameBoardProps {
   game: GameContext;
@@ -11,6 +11,20 @@ interface GameBoardProps {
 
 const GameBoard: React.FC<GameBoardProps> = ({ game, onCategorySelect, onNextPhase }) => {
   const { state, player1, player2, topCard1, topCard2, selectedCategory1, selectedCategory2, roundWinner } = game;
+  const comparisonBarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (
+      state === GameState.RESOLVE_WINNER ||
+      state === GameState.VALUE_COMPARISON
+    ) {
+      comparisonBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      comparisonBarRef.current?.classList.add('focus-glow');
+      setTimeout(() => {
+        comparisonBarRef.current?.classList.remove('focus-glow');
+      }, 1200);
+    }
+  }, [state]);
 
   // Determine card visibility based on game state
   const isCard1Visible = state !== GameState.SETUP && topCard1 !== undefined;
@@ -25,6 +39,95 @@ const GameBoard: React.FC<GameBoardProps> = ({ game, onCategorySelect, onNextPha
 
   const isCard1Winner = state === GameState.RESOLVE_WINNER && roundWinner?.name === player1.name;
   const isCard2Winner = state === GameState.RESOLVE_WINNER && roundWinner?.name === player2.name;
+
+  // Neue Komponente für die Anzeige der gewählten Kategorien und Werte im Zeilen-Layout (Variante B)
+  const CategoryComparisonBar: React.FC<{
+    selectedCategory1?: Category;
+    selectedCategory2?: Category;
+    topCard1?: Card;
+    topCard2?: Card;
+    player1: { name: string };
+    player2: { name: string };
+    roundWinner?: { name: string };
+  }> = ({ selectedCategory1, selectedCategory2, topCard1, topCard2, player1, player2, roundWinner }) => {
+    // Hilfsfunktion für Wertanzeige
+    const getValue = (card: Card | undefined, category: Category | undefined) => {
+      if (!card || !category) return null;
+      return card[category.toLowerCase() as keyof Card];
+    };
+    // Kategorie-Icon (Unicode als Fallback)
+    const getIcon = (category?: Category) => {
+      switch (category) {
+        case Category.CHARISMA: return '✨';
+        case Category.LEADERSHIP: return '👑';
+        case Category.INFLUENCE: return '🌐';
+        case Category.INTEGRITY: return '🛡️';
+        case Category.TRICKERY: return '🦊';
+        case Category.WEALTH: return '💰';
+        default: return '❓';
+      }
+    };
+    // Gewinner-Highlight
+    const highlight = (player: 'p1' | 'p2', category: Category | undefined) => {
+      if (!selectedCategory1 || !selectedCategory2 || !topCard1 || !topCard2) return '';
+      if (!category) return '';
+      // Wer hat in dieser Kategorie gewonnen?
+      const v1 = getValue(topCard1, category);
+      const v2 = getValue(topCard2, category);
+      if (v1 == null || v2 == null) return '';
+      if (v1 > v2 && player === 'p1') return 'winner-value';
+      if (v2 > v1 && player === 'p2') return 'winner-value';
+      if (v1 === v2) return 'tie-value';
+      return '';
+    };
+    return (
+      <div className="category-comparison-bar">
+        <div className="player-comparison left">
+          <div className="player-label">{player1.name}</div>
+          <div className="category-row">
+            {selectedCategory1 && (
+              <>
+                <span className="category-icon">{getIcon(selectedCategory1)}</span>
+                <span className="category-name">{selectedCategory1}</span>
+                <span className={`category-value ${highlight('p1', selectedCategory1)}`}>{getValue(topCard1, selectedCategory1) ?? '-'}</span>
+              </>
+            )}
+          </div>
+          <div className="category-row">
+            {selectedCategory2 && (
+              <>
+                <span className="category-icon">{getIcon(selectedCategory2)}</span>
+                <span className="category-name">{selectedCategory2}</span>
+                <span className={`category-value ${highlight('p1', selectedCategory2)}`}>{getValue(topCard1, selectedCategory2) ?? '-'}</span>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="vs-indicator">VS</div>
+        <div className="player-comparison right">
+          <div className="player-label">{player2.name}</div>
+          <div className="category-row">
+            {selectedCategory1 && (
+              <>
+                <span className="category-icon">{getIcon(selectedCategory1)}</span>
+                <span className="category-name">{selectedCategory1}</span>
+                <span className={`category-value ${highlight('p2', selectedCategory1)}`}>{getValue(topCard2, selectedCategory1) ?? '-'}</span>
+              </>
+            )}
+          </div>
+          <div className="category-row">
+            {selectedCategory2 && (
+              <>
+                <span className="category-icon">{getIcon(selectedCategory2)}</span>
+                <span className="category-name">{selectedCategory2}</span>
+                <span className={`category-value ${highlight('p2', selectedCategory2)}`}>{getValue(topCard2, selectedCategory2) ?? '-'}</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="game-board">
@@ -79,6 +182,18 @@ const GameBoard: React.FC<GameBoardProps> = ({ game, onCategorySelect, onNextPha
           <button onClick={() => window.location.reload()}>Play Again</button>
         </div>
       )}
+
+      <div ref={comparisonBarRef}>
+        <CategoryComparisonBar
+          selectedCategory1={selectedCategory1}
+          selectedCategory2={selectedCategory2}
+          topCard1={topCard1}
+          topCard2={topCard2}
+          player1={player1}
+          player2={player2}
+          roundWinner={roundWinner}
+        />
+      </div>
 
       <HUD
         gameState={state}
