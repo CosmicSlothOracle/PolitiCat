@@ -10,23 +10,16 @@ interface GameBoardProps {
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({ game, onCategorySelect, onNextPhase }) => {
-  const { state, player1, player2, topCard1, topCard2, activePlayer, selectedCategory, roundWinner } = game;
+  const { state, player1, player2, topCard1, topCard2, selectedCategory1, selectedCategory2, roundWinner } = game;
 
   // Determine card visibility based on game state
   const isCard1Visible = state !== GameState.SETUP && topCard1 !== undefined;
-  const isCard2Visible = state !== GameState.SETUP &&
-                         topCard2 !== undefined &&
-                         (state !== GameState.CATEGORY_SELECTION ||
-                          activePlayer.name === player2.name ||
-                          [GameState.VALUE_COMPARISON, GameState.RESOLVE_WINNER].includes(state));
+  const isCard2Visible = state !== GameState.SETUP && topCard2 !== undefined;
 
-  // ✅ FIXED: Avoid object reference check — use `.name` comparison
-  const isCategorySelectable = state === GameState.CATEGORY_SELECTION &&
-    (!activePlayer.isAI);
-
-  console.log('Game state:', state);
-  console.log('Active player:', activePlayer.name);
-  console.log('Is category selectable:', isCategorySelectable);
+  // Kategorieauswahl für Spieler 1 (Mensch)
+  const isCategorySelectable1 = state === GameState.CATEGORY_SELECTION_BOTH && !selectedCategory1;
+  // Kategorieauswahl für Spieler 2 (AI, im Multiplayer ggf. echter Spieler)
+  const isCategorySelectable2 = state === GameState.CATEGORY_SELECTION_BOTH && !selectedCategory2 && !player2.isAI;
 
   const availableCategories = Object.values(Category);
 
@@ -59,9 +52,9 @@ const GameBoard: React.FC<GameBoardProps> = ({ game, onCategorySelect, onNextPha
               card={topCard1}
               isVisible={isCard1Visible}
               isWinner={isCard1Winner}
-              selectedCategory={selectedCategory}
+              selectedCategory={selectedCategory1}
               onCategorySelect={onCategorySelect}
-              isCategorySelectable={isCategorySelectable && activePlayer.name === player1.name}
+              isCategorySelectable={isCategorySelectable1}
             />
           </div>
         )}
@@ -72,9 +65,9 @@ const GameBoard: React.FC<GameBoardProps> = ({ game, onCategorySelect, onNextPha
               card={topCard2}
               isVisible={isCard2Visible}
               isWinner={isCard2Winner}
-              selectedCategory={selectedCategory}
+              selectedCategory={selectedCategory2}
               onCategorySelect={onCategorySelect}
-              isCategorySelectable={isCategorySelectable && activePlayer.name === player2.name}
+              isCategorySelectable={isCategorySelectable2}
             />
           </div>
         )}
@@ -92,7 +85,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ game, onCategorySelect, onNextPha
         onCategorySelect={onCategorySelect}
         onNextPhase={onNextPhase}
         availableCategories={availableCategories.map(c => c.toString())}
-        isCategorySelectable={isCategorySelectable}
+        isCategorySelectable={isCategorySelectable1}
       />
     </div>
   );

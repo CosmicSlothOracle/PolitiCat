@@ -2,6 +2,7 @@ export enum GameState {
   SETUP = 'SETUP',
   DRAW_PHASE = 'DRAW_PHASE',
   CATEGORY_SELECTION = 'CATEGORY_SELECTION',
+  CATEGORY_SELECTION_BOTH = 'CATEGORY_SELECTION_BOTH',
   VALUE_COMPARISON = 'VALUE_COMPARISON',
   RESOLVE_WINNER = 'RESOLVE_WINNER',
   HANDLE_TIE = 'HANDLE_TIE',
@@ -43,6 +44,8 @@ export interface GameContext {
   tiePile: Card[];
   activePlayer: Player;
   selectedCategory?: Category;
+  selectedCategory1?: Category;
+  selectedCategory2?: Category;
   topCard1?: Card;
   topCard2?: Card;
   roundWinner?: Player;

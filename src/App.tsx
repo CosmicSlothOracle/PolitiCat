@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import { InGamePage } from './components/InGamePage';
 import { P2PGamePage } from './components/P2PGamePage';
+import BrandIntro from './components/BrandIntro';
 
 // Create router with future flags
 const router = createBrowserRouter(
@@ -29,7 +30,24 @@ const router = createBrowserRouter(
 );
 
 const App = () => {
-  return <RouterProvider router={router} />;
+  const [showIntro, setShowIntro] = React.useState(() => {
+    return !sessionStorage.getItem('brandIntroSeen');
+  });
+
+  const handleIntroFinish = () => {
+    setShowIntro(false);
+    sessionStorage.setItem('brandIntroSeen', 'true');
+  };
+
+  return (
+    <>
+      {showIntro ? (
+        <BrandIntro onFinish={handleIntroFinish} />
+      ) : (
+        <RouterProvider router={router} />
+      )}
+    </>
+  );
 };
 
 export default App;

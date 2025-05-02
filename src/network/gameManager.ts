@@ -9,9 +9,9 @@ import {
 } from './webrtc';
 import {
   initializeGame,
-  selectCategory,
-  compareValues,
   drawTopCards,
+  selectAICategory,
+  compareBothCategories,
   resolveWinner,
   handleTie,
   checkGameEnd
@@ -108,71 +108,73 @@ export class P2PGameManager {
   public handleCategorySelect(category: Category): void {
     if (!this.game) return;
 
-    // Only process the selection if it's our turn
-    const isOurTurn = this.game.activePlayer.name === this.playerName;
-    if (!isOurTurn || this.processingTurn) return;
+    // Only allow selection in CATEGORY_SELECTION_BOTH
+    if (this.game.state !== GameState.CATEGORY_SELECTION_BOTH) return;
 
-    // Set turn lock
-    this.processingTurn = true;
+    // Determine if we are player1 or player2
+    const isPlayer1 = this.game.player1.name === this.playerName;
+    let updatedGame = { ...this.game };
+    if (isPlayer1 && !updatedGame.selectedCategory1) {
+      updatedGame.selectedCategory1 = category;
+    } else if (!isPlayer1 && !updatedGame.selectedCategory2) {
+      updatedGame.selectedCategory2 = category;
+    } else {
+      return; // Already selected
+    }
+    this.updateGame(updatedGame);
 
-    try {
-      // Log selection for analytics/debugging
-      console.log(`Player selected category: ${category}`);
+    // Notify peer
+    if (isConnected()) {
+      sendCategorySelection(category);
+    }
 
-      // Make local update
-      let updatedGame = selectCategory(this.game, category);
-      this.updateGame(updatedGame);
-
-      // Notify peer
-      if (isConnected()) {
-        sendCategorySelection(category);
-      }
-
-      // Move to comparison phase
+    // If both have selected, resolve
+    if (updatedGame.selectedCategory1 && updatedGame.selectedCategory2) {
       setTimeout(() => {
-        try {
-          updatedGame = compareValues(updatedGame);
-          this.updateGame(updatedGame);
-        } catch (error) {
-          console.error("Error comparing values:", error);
-          if (this.events.onError) {
-            this.events.onError(`Error comparing values: ${error}`);
-          }
-        } finally {
-          this.processingTurn = false; // Release turn lock
+        const comparedGame = compareBothCategories(updatedGame);
+        this.updateGame(comparedGame);
+        if (isConnected()) {
+          GameStateSync.sendGameState(comparedGame);
         }
       }, 500);
-    } catch (error) {
-      console.error("Error selecting category:", error);
-      if (this.events.onError) {
-        this.events.onError(`Error selecting category: ${error}`);
+    } else {
+      // Sync partial state
+      if (isConnected()) {
+        GameStateSync.sendGameState(updatedGame);
       }
-      this.processingTurn = false; // Release turn lock
     }
   }
 
   // Handle a category selection from the remote player
   private handleRemoteCategorySelect(category: Category): void {
     if (!this.game) return;
+    if (this.game.state !== GameState.CATEGORY_SELECTION_BOTH) return;
 
-    // Only process if it's remote player's turn and we're not already processing a turn
-    if (this.game.activePlayer.name !== this.playerName && !this.processingTurn) {
-      this.processingTurn = true; // Lock to prevent race conditions
+    // Determine if remote is player1 or player2
+    const isRemotePlayer1 = this.game.player1.name !== this.playerName;
+    let updatedGame = { ...this.game };
+    if (isRemotePlayer1 && !updatedGame.selectedCategory1) {
+      updatedGame.selectedCategory1 = category;
+    } else if (!isRemotePlayer1 && !updatedGame.selectedCategory2) {
+      updatedGame.selectedCategory2 = category;
+    } else {
+      return; // Already selected
+    }
+    this.updateGame(updatedGame);
 
-      try {
-        // Log for debugging
-        console.log(`Remote player selected category: ${category}`);
-
-        let updatedGame = selectCategory(this.game, category);
-        updatedGame = compareValues(updatedGame);
-        this.updateGame(updatedGame);
-      } catch (error) {
-        console.error("Error handling remote category selection:", error);
-        if (this.events.onError) {
-          this.events.onError(`Error handling remote selection: ${error}`);
+    // If both have selected, resolve
+    if (updatedGame.selectedCategory1 && updatedGame.selectedCategory2) {
+      setTimeout(() => {
+        const comparedGame = compareBothCategories(updatedGame);
+        this.updateGame(comparedGame);
+        if (isConnected()) {
+          GameStateSync.sendGameState(comparedGame);
         }
-      } finally {
-        this.processingTurn = false; // Release turn lock
+      }, 500);
+    } else {
+      // Sync partial state
+      if (isConnected()) {
+        GameStateSync.sendGameState(updatedGame);
       }
     }
   }
@@ -238,14 +240,16 @@ export class P2PGameManager {
 
         case GameState.CHECK_END:
           const nextGame = checkGameEnd(this.game);
-          this.updateGame(nextGame);
-
-          // If we move to the draw phase, automatically draw cards
+          // Nach CHECK_END: State auf CATEGORY_SELECTION_BOTH setzen und Auswahl zurücksetzen
           if (nextGame.state === GameState.DRAW_PHASE) {
             setTimeout(() => {
               try {
                 const drawGame = drawTopCards(nextGame);
-                this.updateGame(drawGame);
+                const selectionGame = { ...drawGame, state: GameState.CATEGORY_SELECTION_BOTH, selectedCategory1: undefined, selectedCategory2: undefined };
+                this.updateGame(selectionGame);
+                if (isConnected()) {
+                  GameStateSync.sendGameState(selectionGame);
+                }
               } catch (error) {
                 console.error("Error drawing cards:", error);
                 if (this.events.onError) {
@@ -253,6 +257,11 @@ export class P2PGameManager {
                 }
               }
             }, 500);
+          } else {
+            this.updateGame(nextGame);
+            if (isConnected()) {
+              GameStateSync.sendGameState(nextGame);
+            }
           }
           break;
 

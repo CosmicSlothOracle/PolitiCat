@@ -288,6 +288,9 @@ body {
   pointer-events: auto !important;
   width: 100%;
   max-width: 1200px;
+  position: relative;
+  z-index: 1;
+  perspective: 1000px;
 }
 
 .player1-card, .player2-card {
@@ -300,23 +303,128 @@ body {
 
 /* Card Display Component */
 .card-display {
-  width: 573px;  /* 882px - 35% */
-  height: 840px; /* 1292px - 35% */
+  width: 527px;
+  height: 773px;
   background-color: #222;
   border: 2px solid #00ffff;
   border-radius: 10px;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   padding: 0.8rem;
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 255, 255, 0.5);
-  transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
   pointer-events: auto !important;
 }
 
-.card-display:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 255, 255, 0.6);
+/* Card Image Container with Glow */
+.card-image-container {
+  width: 100%;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+  transform: translateY(-10px);
+}
+
+/* Floating Card Image Animation */
+@keyframes floatingCardImage {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-0.96px) rotate(0.06deg);
+  }
+}
+
+/* Intense Glow Animation */
+@keyframes intensiveGlow {
+  0%, 100% {
+    opacity: 0.7;
+    filter: blur(15px) brightness(1.2);
+  }
+  50% {
+    opacity: 0.9;
+    filter: blur(20px) brightness(1.4);
+  }
+}
+
+/* Card Image with Float Effect */
+.card-image {
+  width: 526px;
+  height: 772px;
+  object-fit: contain;
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  animation: floatingCardImage 3s ease-in-out infinite;
+  position: relative;
+  z-index: 3;
+  will-change: transform;
+}
+
+/* Radiant Glow Effect */
+.card-image-container::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  left: -30px;
+  right: -30px;
+  bottom: -30px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.15) 40%,
+    transparent 70%
+  );
+  z-index: 1;
+  animation: intensiveGlow 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Enhanced Ground Glow */
+.card-image-container::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200%;
+  height: 60px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.2) 30%,
+    transparent 70%
+  );
+  filter: blur(20px);
+  z-index: 1;
+  animation: intensiveGlow 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Winner Card Enhanced Glow */
+.card-winner .card-image-container::before {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 215, 0, 0.4) 0%,
+    rgba(255, 215, 0, 0.2) 40%,
+    transparent 70%
+  );
+  animation: intensiveGlow 2s ease-in-out infinite;
+}
+
+.card-winner .card-image-container::after {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 215, 0, 0.5) 0%,
+    rgba(255, 215, 0, 0.3) 30%,
+    transparent 70%
+  );
+  animation: intensiveGlow 2s ease-in-out infinite;
 }
 
 .card-winner {
@@ -331,31 +439,11 @@ body {
 }
 
 .card-name {
+  display: none;
   text-align: center;
   margin-bottom: 0.5rem;
   font-size: 1.2rem;
   color: #00ffff;
-}
-
-.card-image-container {
-  width: 100%;
-  height: auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-  border-radius: 5px;
-  background-color: #000;
-}
-
-.card-image {
-  width: 572px;  /* 880px - 35% */
-  height: 839px; /* 1290px - 35% */
-  object-fit: contain;
-  max-width: 100%;
-  max-height: 100%;
-  display: block;
 }
 
 /* Hide the attributes list as requested */
@@ -437,18 +525,18 @@ body {
 
 /* HUD */
 .hud-container {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
   background-color: rgba(0, 0, 0, 0.7);
   padding: 1rem;
   border-radius: 8px;
   border: 1px solid #00ffff;
-  z-index: 100;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   min-width: 200px;
+  margin: 32px auto 0 auto;
+  max-width: 700px;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .phase-indicator {
@@ -568,14 +656,14 @@ body {
   }
 
   .card-display {
-    width: 573px;
-    height: 840px;
+    width: 527px;
+    height: 773px;
     max-width: 100%;
   }
 
   .card-image {
-    width: 572px;
-    height: 839px;
+    width: 526px;
+    height: 772px;
     max-width: 100%;
   }
 
@@ -591,8 +679,8 @@ body {
   }
 
   .card-display {
-    width: 573px;
-    height: 840px;
+    width: 527px;
+    height: 773px;
     max-width: 90%;
     margin-bottom: 1.5rem;
   }
@@ -618,13 +706,13 @@ body {
     width: 90%;
     max-width: 400px;
     height: auto;
-    aspect-ratio: 573 / 840;
+    aspect-ratio: 527 / 773;
   }
 
   .card-image {
     width: 100%;
     height: auto;
-    aspect-ratio: 572 / 839;
+    aspect-ratio: 526 / 772;
   }
 
   .player-info {
@@ -644,6 +732,8 @@ body {
     right: 0;
     bottom: 0;
     border-radius: 0;
+    margin: 16px auto 0 auto;
+    max-width: 98vw;
   }
 }
 
@@ -656,11 +746,21 @@ body {
     width: 95%;
     max-width: 300px;
     height: auto;
-    aspect-ratio: 573 / 840;
+    aspect-ratio: 527 / 773;
   }
 
   .attribute {
     font-size: 0.6rem;
+  }
+
+  .hud-container {
+    width: 100%;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0;
+    margin: 16px auto 0 auto;
+    max-width: 98vw;
   }
 }
 
@@ -906,4 +1006,70 @@ button {
   .room-code {
     font-size: 1.2rem;
   }
+}
+
+/* Card Display Floating Animation */
+@keyframes floatingCard {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(255, 255, 255, 0.2),
+                0 15px 35px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    transform: translateY(-8px) rotate(0.5deg);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.4),
+                0 0 25px rgba(255, 255, 255, 0.3),
+                0 25px 45px rgba(255, 255, 255, 0.15);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05) translateY(-5px);
+  }
+}
+
+/* Winner card enhanced glow */
+.card-winner::before {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 215, 0, 0.2) 0%,
+    rgba(255, 215, 0, 0.1) 50%,
+    transparent 70%
+  );
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+.card-winner::after {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 215, 0, 0.25) 0%,
+    rgba(255, 215, 0, 0.15) 40%,
+    transparent 80%
+  );
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+/* Enhance hover state */
+.card-display:hover {
+  transform: translateY(-12px) rotate(-1deg);
+  transition: transform 0.3s ease-out;
+}
+
+.card-display:hover::before {
+  opacity: 0.8;
+  transform: scale(1.1);
+  transition: all 0.3s ease-out;
+}
+
+.card-display:hover::after {
+  opacity: 0.9;
+  width: 160%;
+  transition: all 0.3s ease-out;
 }

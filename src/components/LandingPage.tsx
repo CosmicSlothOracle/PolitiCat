@@ -1,29 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/main.css';
+import VinylMusicControl from './VinylMusicControl';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const [isMusicPlaying, setIsMusicPlaying] = useState<boolean>(false);
   const [showLibrary, setShowLibrary] = useState<boolean>(false);
-
-  // Optional: Play background music
-  useEffect(() => {
-    const audio = new Audio('/assets/music/theme.mp3');
-    audio.loop = true;
-
-    if (isMusicPlaying) {
-      audio.play().catch(error => {
-        // Auto-play might be blocked by browser policies
-        console.log('Autoplay prevented:', error);
-      });
-    }
-
-    return () => {
-      audio.pause();
-      audio.currentTime = 0;
-    };
-  }, [isMusicPlaying]);
 
   // Handle animation effects
   useEffect(() => {
@@ -39,11 +21,6 @@ const LandingPage: React.FC = () => {
   // Handle navigation to multiplayer game
   const handlePlayMultiplayer = () => {
     navigate('/multiplayer');
-  };
-
-  // Toggle music playback
-  const toggleMusic = () => {
-    setIsMusicPlaying(!isMusicPlaying);
   };
 
   // Toggle library view
@@ -94,15 +71,7 @@ const LandingPage: React.FC = () => {
         CAT Library
       </button>
 
-      <div
-        className={`music-control ${isMusicPlaying ? 'playing' : ''}`}
-        onClick={toggleMusic}
-      >
-        <div className="cassette-icon">
-          <div className="wheel left"></div>
-          <div className="wheel right"></div>
-        </div>
-      </div>
+      <VinylMusicControl />
 
       {showLibrary && <CardLibrary />}
     </div>

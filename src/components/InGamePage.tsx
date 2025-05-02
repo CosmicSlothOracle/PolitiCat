@@ -6,12 +6,11 @@ import { Category, GameContext, GameState } from '../game/types';
 import {
   initializeGame,
   drawTopCards,
-  selectCategory,
-  compareValues,
+  selectAICategory,
+  compareBothCategories,
   resolveWinner,
   handleTie,
-  checkGameEnd,
-  selectAICategory
+  checkGameEnd
 } from '../game/gameEngine';
 
 export const InGamePage: React.FC = () => {
@@ -39,16 +38,23 @@ export const InGamePage: React.FC = () => {
       switch (game.state) {
         case GameState.DRAW_PHASE:
           const updatedGame = drawTopCards(game);
-          setGame(updatedGame);
+          // Nach dem Ziehen: State auf CATEGORY_SELECTION_BOTH setzen
+          setGame({ ...updatedGame, state: GameState.CATEGORY_SELECTION_BOTH, selectedCategory1: undefined, selectedCategory2: undefined });
           break;
 
-        case GameState.CATEGORY_SELECTION:
-          if (game.activePlayer.isAI && game.topCard1 && game.topCard2) {
-            const aiCard = game.activePlayer === game.player1 ? game.topCard1 : game.topCard2;
-            const aiCategory = selectAICategory(aiCard);
+        case GameState.CATEGORY_SELECTION_BOTH:
+          // AI wählt automatisch, falls noch nicht gewählt
+          if (!game.selectedCategory2 && game.topCard2 && game.player2.isAI) {
+            const aiCategory = selectAICategory(game.topCard2);
             setTimeout(() => {
-              handleCategorySelect(aiCategory);
-            }, 1000);
+              setGame(prev => prev ? { ...prev, selectedCategory2: aiCategory } : null);
+            }, 800);
+          }
+          // Wenn beide gewählt haben, auswerten
+          if (game.selectedCategory1 && game.selectedCategory2) {
+            setTimeout(() => {
+              setGame(prev => prev ? compareBothCategories(prev) : null);
+            }, 500);
           }
           break;
 
@@ -58,22 +64,13 @@ export const InGamePage: React.FC = () => {
     };
 
     handleGameState();
-  }, [game?.state]);
+  }, [game]);
 
-  // Kategorieauswahl
+  // Kategorieauswahl für den Menschen
   const handleCategorySelect = (category: Category) => {
     if (!game) return;
-
-    console.log('Kategorie gewählt:', category);
-    console.log('Zustand vor Auswahl:', game.state);
-
-    const updatedGame = selectCategory(game, category);
-    setGame(updatedGame);
-
-    setTimeout(() => {
-      const comparedGame = compareValues(updatedGame);
-      setGame(comparedGame);
-    }, 500);
+    if (game.state !== GameState.CATEGORY_SELECTION_BOTH || game.selectedCategory1) return;
+    setGame({ ...game, selectedCategory1: category });
   };
 
   // Phasensteuerung

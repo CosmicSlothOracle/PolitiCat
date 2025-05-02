@@ -20,6 +20,7 @@ export const HUD: React.FC<HUDProps> = ({
     [GameState.SETUP]: 'Setup',
     [GameState.DRAW_PHASE]: 'Draw Phase',
     [GameState.CATEGORY_SELECTION]: 'Select a Category',
+    [GameState.CATEGORY_SELECTION_BOTH]: 'Select a Category',
     [GameState.VALUE_COMPARISON]: 'Compare Values',
     [GameState.RESOLVE_WINNER]: 'Resolving Round',
     [GameState.HANDLE_TIE]: 'Tie Detected',
@@ -51,12 +52,12 @@ export const HUD: React.FC<HUDProps> = ({
   }, [isCategorySelectable, onCategorySelect]);
 
   return (
-    <div className="hud-container">
+    <div className="hud-container" style={{ margin: '32px auto 0 auto', maxWidth: 700 }}>
       <div className="phase-indicator">
         <strong>{phaseLabels[gameState]}</strong>
       </div>
 
-      {gameState === GameState.CATEGORY_SELECTION && isCategorySelectable && (
+      {(gameState === GameState.CATEGORY_SELECTION || gameState === GameState.CATEGORY_SELECTION_BOTH) && isCategorySelectable && (
         <div className="category-buttons">
           {availableCategories.map((cat) => (
             <button

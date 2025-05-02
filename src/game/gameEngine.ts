@@ -205,3 +205,74 @@ export const checkGameEnd = (game: GameContext): GameContext => {
     };
   }
 };
+
+// Vergleicht die von beiden Spielern gewählten Kategorien und bestimmt den Gewinner
+export const compareBothCategories = (game: GameContext): GameContext => {
+  if (!game.topCard1 || !game.topCard2 || !game.selectedCategory1 || !game.selectedCategory2) {
+    return game;
+  }
+
+  // Wenn beide dieselbe Kategorie gewählt haben: Standardvergleich
+  if (game.selectedCategory1 === game.selectedCategory2) {
+    const cat = game.selectedCategory1;
+    const val1 = game.topCard1[cat.toLowerCase() as keyof Card] as number;
+    const val2 = game.topCard2[cat.toLowerCase() as keyof Card] as number;
+    if (val1 > val2) {
+      return {
+        ...game,
+        state: GameState.RESOLVE_WINNER,
+        roundWinner: game.player1
+      };
+    } else if (val2 > val1) {
+      return {
+        ...game,
+        state: GameState.RESOLVE_WINNER,
+        roundWinner: game.player2
+      };
+    } else {
+      return {
+        ...game,
+        state: GameState.HANDLE_TIE
+      };
+    }
+  }
+
+  // Unterschiedliche Kategorien: Wer in einer Kategorie gewinnt, gewinnt die Runde
+  const cat1 = game.selectedCategory1;
+  const cat2 = game.selectedCategory2;
+  const val1_cat1 = game.topCard1[cat1.toLowerCase() as keyof Card] as number;
+  const val2_cat1 = game.topCard2[cat1.toLowerCase() as keyof Card] as number;
+  const val1_cat2 = game.topCard1[cat2.toLowerCase() as keyof Card] as number;
+  const val2_cat2 = game.topCard2[cat2.toLowerCase() as keyof Card] as number;
+
+  let p1Wins = 0;
+  let p2Wins = 0;
+
+  // Kategorie 1 Vergleich
+  if (val1_cat1 > val2_cat1) p1Wins++;
+  else if (val2_cat1 > val1_cat1) p2Wins++;
+
+  // Kategorie 2 Vergleich
+  if (val1_cat2 > val2_cat2) p1Wins++;
+  else if (val2_cat2 > val1_cat2) p2Wins++;
+
+  if (p1Wins > p2Wins) {
+    return {
+      ...game,
+      state: GameState.RESOLVE_WINNER,
+      roundWinner: game.player1
+    };
+  } else if (p2Wins > p1Wins) {
+    return {
+      ...game,
+      state: GameState.RESOLVE_WINNER,
+      roundWinner: game.player2
+    };
+  } else {
+    // Beide Kategorien Gleichstand
+    return {
+      ...game,
+      state: GameState.HANDLE_TIE
+    };
+  }
+};

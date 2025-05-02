@@ -8,7 +8,7 @@ import { P2PGameManager } from '../network/gameManager';
 import { connectToPeer, isConnected, sendPlayerInfo, localPlayerId, disconnect } from '../network/webrtc';
 
 // Default URL for the signaling server (should be set in environment)
-const DEFAULT_SIGNALING_URL = 'wss://politicat-signaling.onrender.com';
+const DEFAULT_SIGNALING_URL = import.meta.env.VITE_SIGNALING_URL || 'wss://politicat-signaling.onrender.com';
 
 export const P2PGamePage: React.FC = () => {
   // State

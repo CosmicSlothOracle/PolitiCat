@@ -100,7 +100,7 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
               ))}
             </div>
           )}
-          {card.quote && <p className="card-quote">"{card.quote}"</p>}
+          {/* {card.quote && <p className="card-quote">"{card.quote}"</p>} */}
         </>
       ) : (
         <div className="card-back">
