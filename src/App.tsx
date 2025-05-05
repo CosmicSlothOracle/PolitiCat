@@ -4,6 +4,7 @@ import LandingPage from './components/LandingPage';
 import { InGamePage } from './components/InGamePage';
 import { P2PGamePage } from './components/P2PGamePage';
 import BrandIntro from './components/BrandIntro';
+import BeatEmUpQTE from './components/BeatEmUpQTE';
 
 // Create router with future flags
 const router = createBrowserRouter(
@@ -19,6 +20,10 @@ const router = createBrowserRouter(
     {
       path: "/multiplayer",
       element: <P2PGamePage />
+    },
+    {
+      path: "/qte-test",
+      element: <BeatEmUpQTE />
     }
   ],
   {

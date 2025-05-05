@@ -62,6 +62,12 @@ const LandingPage: React.FC = () => {
         >
           Play Against a Friend
         </button>
+        <button
+          className="play-button"
+          onClick={() => navigate('/qte-test')}
+        >
+          QTE Test Area
+        </button>
       </div>
 
       <button
