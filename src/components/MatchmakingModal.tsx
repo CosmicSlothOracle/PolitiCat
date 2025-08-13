@@ -53,7 +53,10 @@ export const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
               <button
                 key={n}
                 className={`play-button ${n === slotsCount ? '' : ''}`}
-                onClick={() => onChangeSlotsCount(n)}
+                onClick={() => isHost && onChangeSlotsCount(n)}
+                disabled={!isHost}
+                aria-disabled={!isHost}
+                title={!isHost ? 'Only host can change slots' : undefined}
               >
                 {n}
               </button>
@@ -75,17 +78,15 @@ export const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
                       <div className={`mm-status ${slot.isAI ? 'ai' : (slot.connected ? 'ok' : 'wait')}`}>
                         {slot.isAI ? 'AI' : (slot.connected ? 'Connected' : 'Waiting')}
                       </div>
-                      {slot.isAI && isHost && (
-                        <button className="play-button" onClick={() => onKickAI(idx)}>Remove AI</button>
+                      {slot.isAI && (
+                        <button className="play-button" onClick={() => { if(isHost) onKickAI(idx); }} disabled={!isHost} aria-disabled={!isHost} title={!isHost ? 'Only host can remove AI' : undefined}>Remove AI</button>
                       )}
                     </>
                   ) : (
                     <>
                       <div className="mm-name">—</div>
                       <div className="mm-status wait">Waiting…</div>
-                      {isHost && (
-                        <button className="play-button" onClick={() => onFillAI(idx)}>Fill with AI</button>
-                      )}
+                      <button className="play-button" onClick={() => { if(isHost) onFillAI(idx); }} disabled={!isHost} aria-disabled={!isHost} title={!isHost ? 'Only host can add AI' : undefined}>Fill with AI</button>
                     </>
                   )}
                 </div>

@@ -26,6 +26,8 @@ export let localPlayerId = Math.random().toString(36).substring(2);
 let messageHandlers: ((message: NetworkMessage) => void)[] = [];
 // Buffer messages before the data channel is open to ensure delivery
 const pendingMessages: string[] = [];
+// Buffer inbound messages until at least one handler is registered
+let inboundPending: NetworkMessage[] = [];
 
 // Default ICE servers with optional TURN from env
 const ICE_SERVERS: RTCIceServer[] = [
@@ -229,6 +231,12 @@ function setupDataChannel(channel: RTCDataChannel): void {
   channel.onmessage = (event) => {
     try {
       const message: NetworkMessage = JSON.parse(event.data);
+      // If no handlers yet, buffer until subscribers attach
+      if (messageHandlers.length === 0) {
+        if (inboundPending.length >= 100) inboundPending.shift();
+        inboundPending.push(message);
+        return;
+      }
       // Notify all message handlers
       messageHandlers.forEach(handler => handler(message));
     } catch (error) {
@@ -307,6 +315,14 @@ export function sendSyncRequest(): void {
 // Register a message handler
 export function addMessageHandler(handler: (message: NetworkMessage) => void): void {
   messageHandlers.push(handler);
+  // Flush any buffered inbound messages to all handlers
+  if (inboundPending.length > 0) {
+    const buffered = inboundPending.slice();
+    inboundPending = [];
+    buffered.forEach(msg => {
+      messageHandlers.forEach(h => h(msg));
+    });
+  }
 }
 
 // Remove a message handler
