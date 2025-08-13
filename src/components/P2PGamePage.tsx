@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GameBoard from './GameBoard';
 import { GameLogger } from '../ui/GameLogger';
@@ -32,6 +32,9 @@ export const P2PGamePage: React.FC = () => {
   ]);
 
   const navigate = useNavigate();
+  // Avoid stale isHost in callbacks (modal buttons)
+  const isHostRef = useRef<boolean>(isHost);
+  useEffect(()=>{ isHostRef.current = isHost; }, [isHost]);
 
   // Initialize game manager
   useEffect(() => {
@@ -325,9 +328,9 @@ export const P2PGamePage: React.FC = () => {
         slotsCount={slotsCount}
         allowedCounts={[3,4]}
         slots={slots}
-        onChangeSlotsCount={(n)=> { if(isHost) setSlotsCount(n); }}
-        onFillAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: `AI ${idx+1}`, connected: true, isAI: true }; return next; })}
-        onKickAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: '—', connected: false, isAI: false }; return next; })}
+         onChangeSlotsCount={(n)=> { if(isHostRef.current) setSlotsCount(n); }}
+         onFillAI={(idx)=> { if(!isHostRef.current) return; setSlots(prev=>{ const next=[...prev]; next[idx] = { name: `AI ${idx+1}`, connected: true, isAI: true }; return next; }); }}
+         onKickAI={(idx)=> { if(!isHostRef.current) return; setSlots(prev=>{ const next=[...prev]; next[idx] = { name: '—', connected: false, isAI: false }; return next; }); }}
         onStart={()=>{
           if(!isHost) return; // only host can start the game
           setIsMMOpen(false);

@@ -8,6 +8,7 @@ export enum MessageType {
   PLAYER_INFO = 'PLAYER_INFO',
   CHAT = 'CHAT',
   PING = 'PING',
+  SYNC_REQUEST = 'SYNC_REQUEST',
 }
 
 export interface NetworkMessage {
@@ -23,6 +24,8 @@ export let dataChannel: RTCDataChannel | null = null;
 let socket: WebSocket | null = null;
 export let localPlayerId = Math.random().toString(36).substring(2);
 let messageHandlers: ((message: NetworkMessage) => void)[] = [];
+// Buffer messages before the data channel is open to ensure delivery
+const pendingMessages: string[] = [];
 
 // Default ICE servers with optional TURN from env
 const ICE_SERVERS: RTCIceServer[] = [
@@ -202,6 +205,17 @@ function setupDataChannel(channel: RTCDataChannel): void {
   dataChannel = channel;
   channel.onopen = () => {
     console.log(`Data channel ${channel.label} is open`);
+    // Flush queued messages once the channel opens
+    try {
+      while (pendingMessages.length > 0 && dataChannel && dataChannel.readyState === 'open') {
+        const raw = pendingMessages.shift();
+        if (raw) {
+          dataChannel.send(raw);
+        }
+      }
+    } catch (error) {
+      console.error('Error flushing pending messages:', error);
+    }
   };
 
   channel.onclose = () => {
@@ -223,72 +237,71 @@ function setupDataChannel(channel: RTCDataChannel): void {
   };
 }
 
+// Helper to send immediately or queue until the channel is open
+function sendOrQueue(message: NetworkMessage): void {
+  const raw = JSON.stringify(message);
+  if (dataChannel && dataChannel.readyState === 'open') {
+    dataChannel.send(raw);
+  } else {
+    // Keep queue size bounded
+    if (pendingMessages.length >= 100) pendingMessages.shift();
+    pendingMessages.push(raw);
+  }
+}
+
 // Send a game action to the peer
 export function sendGameAction(action: any): void {
-  if (!dataChannel || dataChannel.readyState !== 'open') {
-    console.warn("Data channel not open, can't send message");
-    return;
-  }
-
   const message: NetworkMessage = {
     type: MessageType.GAME_ACTION,
     data: action,
     senderId: localPlayerId,
     timestamp: Date.now()
   };
-
-  dataChannel.send(JSON.stringify(message));
+  sendOrQueue(message);
 }
 
 // Send a category selection to the peer
 export function sendCategorySelection(category: Category): void {
-  if (!dataChannel || dataChannel.readyState !== 'open') {
-    console.warn("Data channel not open, can't send category selection");
-    return;
-  }
-
   const message: NetworkMessage = {
     type: MessageType.CATEGORY_SELECT,
     data: category,
     senderId: localPlayerId,
     timestamp: Date.now()
   };
-
-  dataChannel.send(JSON.stringify(message));
+  sendOrQueue(message);
 }
 
 // Send the current game state to the peer
 export function sendGameState(gameState: GameContext): void {
-  if (!dataChannel || dataChannel.readyState !== 'open') {
-    console.warn("Data channel not open, can't send game state");
-    return;
-  }
-
   const message: NetworkMessage = {
     type: MessageType.GAME_STATE,
     data: gameState,
     senderId: localPlayerId,
     timestamp: Date.now()
   };
-
-  dataChannel.send(JSON.stringify(message));
+  sendOrQueue(message);
 }
 
 // Send player information to the peer
 export function sendPlayerInfo(player: Player): void {
-  if (!dataChannel || dataChannel.readyState !== 'open') {
-    console.warn("Data channel not open, can't send player info");
-    return;
-  }
-
   const message: NetworkMessage = {
     type: MessageType.PLAYER_INFO,
     data: player,
     senderId: localPlayerId,
     timestamp: Date.now()
   };
+  sendOrQueue(message);
+}
 
-  dataChannel.send(JSON.stringify(message));
+// Send a sync request to the peer to ask for current game state
+export function sendSyncRequest(): void {
+  const message: NetworkMessage = {
+    type: MessageType.SYNC_REQUEST,
+    data: null,
+    senderId: localPlayerId,
+    timestamp: Date.now()
+  };
+  sendOrQueue(message);
 }
 
 // Register a message handler

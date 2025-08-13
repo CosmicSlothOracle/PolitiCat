@@ -9,6 +9,7 @@ export interface MessageHandlerCallbacks {
   onGameStateUpdate?: (gameState: GameContext) => void;
   onPlayerInfo?: (player: Player) => void;
   onError?: (error: string) => void;
+  onSyncRequest?: () => void;
 }
 
 /**
@@ -38,11 +39,18 @@ export class NetworkMessageHandler {
         case MessageType.CATEGORY_SELECT:
           if (this.callbacks.onCategorySelect) {
             const category = message.data as Category;
-            if (typeof category !== 'number') {
+            // Category is a string enum in this codebase; basic validation
+            if (typeof category !== 'string') {
               throw new Error('Invalid category data received');
             }
             console.log(`Processing category selection message: ${Category[category] || category}`);
             this.callbacks.onCategorySelect(category);
+          }
+          break;
+        case MessageType.SYNC_REQUEST:
+          if (this.callbacks.onSyncRequest) {
+            console.log('Processing sync request message');
+            this.callbacks.onSyncRequest();
           }
           break;
 

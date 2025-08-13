@@ -18,6 +18,7 @@ import {
 } from '../game/gameEngine';
 import { NetworkMessageHandler, MessageHandlerCallbacks } from './messageHandler';
 import { GameStateSync } from './stateSync';
+import { sendSyncRequest } from './webrtc';
 
 // Game event callbacks
 export interface GameEvents {
@@ -49,6 +50,11 @@ export class P2PGameManager {
       onCategorySelect: this.handleRemoteCategorySelect.bind(this),
       onGameStateUpdate: this.handleRemoteGameState.bind(this),
       onPlayerInfo: this.handleRemotePlayerInfo.bind(this),
+      onSyncRequest: () => {
+        if (this.game && isConnected()) {
+          GameStateSync.sendGameState(this.game);
+        }
+      },
       onError: (error) => {
         if (this.events.onError) this.events.onError(error);
       }
@@ -82,6 +88,8 @@ export class P2PGameManager {
     } else {
       console.log("Waiting for game state from initiator");
       this.waitingForRemoteState = true;
+      // Ask host to send current state as soon as channel is ready
+      try { sendSyncRequest(); } catch {}
 
       // Set a timeout to handle cases where we don't receive state
       setTimeout(() => {
