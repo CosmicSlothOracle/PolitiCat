@@ -78,9 +78,11 @@ export async function connectToPeer(signalingServerUrl: string, isInitiator: boo
       setupDataChannel(dataChannel);
     }
 
-    // Handle incoming data channels
+    // Handle incoming data channels (non-initiator path)
     peerConnection.ondatachannel = (event) => {
       const receiveChannel = event.channel;
+      // Store globally so isConnected() and send* functions work for guests
+      dataChannel = receiveChannel;
       setupDataChannel(receiveChannel);
     };
 
@@ -170,6 +172,8 @@ function sendSignalingMessage(message: any): void {
 
 // Set up data channel handlers
 function setupDataChannel(channel: RTCDataChannel): void {
+  // Ensure global reference is kept in sync for both initiator and guest
+  dataChannel = channel;
   channel.onopen = () => {
     console.log(`Data channel ${channel.label} is open`);
   };
