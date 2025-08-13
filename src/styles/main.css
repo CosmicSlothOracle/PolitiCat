@@ -984,14 +984,86 @@ button {
 
 .connection-indicator {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  left: auto;
+  top: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 0.35rem 0.6rem;
+  border-radius: 9999px;
   border: 1px solid #00ffff;
-  font-size: 0.8rem;
-  z-index: 100;
+  font-size: 0.65rem;
+  z-index: 90; /* unterhalb modaler Overlays, aber über Spielfläche */
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+
+/* Matchmaking Modal */
+.matchmaking-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 950;
+}
+.matchmaking-modal {
+  width: min(90vw, 720px);
+  background: rgba(0, 31, 63, 0.95);
+  border: 3px solid #00ffff;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,255,255,0.5);
+  padding: 1rem;
+}
+.mm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #00ffff;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+.mm-room { color: #00ffff; margin-bottom: 0.8rem; }
+.mm-slots-config { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.8rem; }
+.mm-note { font-size: 0.7rem; color: #ffcc00; margin-left: 0.5rem; }
+.mm-slots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+.mm-slot { border: 1px solid #00ffff; border-radius: 8px; padding: 0.6rem; background: rgba(0,0,0,0.4); }
+.mm-slot-title { font-size: 0.8rem; color: #00ffff; margin-bottom: 0.3rem; }
+.mm-slot-body { display: flex; flex-direction: column; gap: 0.4rem; }
+.mm-name { font-weight: bold; }
+.mm-status { font-size: 0.75rem; }
+.mm-status.ok { color: #00ff88; }
+.mm-status.wait { color: #ffcc00; }
+.mm-status.ai { color: #66aaff; }
+.mm-actions { display: flex; justify-content: flex-end; margin-top: 0.8rem; }
+
+@media (max-width: 520px) {
+  .mm-slots { grid-template-columns: 1fr; }
+}
+
+.connection-indicator .play-button,
+.connection-indicator .return-button {
+  font-size: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  margin-top: 0;
+}
+
+@media (max-width: 768px) {
+  .connection-indicator {
+    bottom: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.6rem;
+    padding: 0.3rem 0.5rem;
+    gap: 0.3rem;
+  }
+  .connection-indicator .play-button,
+  .connection-indicator .return-button {
+    font-size: 0.55rem;
+    padding: 0.3rem 0.4rem;
+  }
 }
 
 @media (max-width: 768px) {

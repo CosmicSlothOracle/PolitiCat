@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { connectToPeer, disconnect, isConnected, localPlayerId, sendGameState, sendGameAction } from '../network/webrtc';
+import MatchmakingModal, { MatchmakingSlot } from './MatchmakingModal';
 // import { GameStateSync } from '../network/stateSync';
 
 // This page hosts an iframe of the PokemonZ game and uses WebRTC signaling
@@ -20,6 +21,16 @@ export const PokemonZOnlinePage: React.FC = () => {
   const [status, setStatus] = useState<ConnStatus>('disconnected');
   const [error, setError] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  // Matchmaking state
+  const [isMMOpen, setIsMMOpen] = useState<boolean>(false);
+  const [slotsCount, setSlotsCount] = useState<number>(3);
+  const [slots, setSlots] = useState<MatchmakingSlot[]>([
+    { name: playerName, connected: false, isAI: false },
+    { name: 'Waiting…', connected: false, isAI: false },
+    { name: '—', connected: false, isAI: false },
+    { name: '—', connected: false, isAI: false },
+  ]);
 
   // Prefill room from URL param if present
   useEffect(() => {
@@ -88,6 +99,8 @@ export const PokemonZOnlinePage: React.FC = () => {
         setStatus('connected');
         // Let iframe know it is the driver
         postToIframe({ type: 'POKEMONZ_VIEWER_MODE', payload: false });
+        setIsMMOpen(true);
+        setSlots(prev => { const next=[...prev]; next[0] = { name: playerName, connected: true, isAI: false }; return next; });
       }else{
         setStatus('disconnected'); setError('Failed to connect to signaling server');
       }
@@ -106,6 +119,8 @@ export const PokemonZOnlinePage: React.FC = () => {
         setStatus('connected');
         // Set iframe into viewer mode
         postToIframe({ type: 'POKEMONZ_VIEWER_MODE', payload: true });
+        setIsMMOpen(true);
+        setSlots(prev => { const next=[...prev]; next[1] = { name: playerName, connected: true, isAI: false }; return next; });
       }else{
         setStatus('disconnected'); setError('Failed to connect to room');
       }
@@ -252,6 +267,25 @@ export const PokemonZOnlinePage: React.FC = () => {
           <button className="return-button" onClick={handleReturn}>Leave</button>
         </span>
       </div>
+      <MatchmakingModal
+        isOpen={isMMOpen}
+        isHost={isHost}
+        roomId={roomId}
+        slotsCount={slotsCount}
+        allowedCounts={[3,4]}
+        slots={slots}
+        onChangeSlotsCount={(n)=> setSlotsCount(n)}
+        onFillAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: `AI ${idx+1}`, connected: true, isAI: true }; return next; })}
+        onKickAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: '—', connected: false, isAI: false }; return next; })}
+        onStart={()=>{
+          setIsMMOpen(false);
+          const names = slots.slice(0, slotsCount).map(s=>s.name);
+          postToIframe({ type: 'POKEMONZ_MATCH_START', payload: { count: slotsCount, names } });
+        }}
+        onClose={()=> setIsMMOpen(false)}
+      />
+      {/* Provide names to iframe for scoreboard */}
+      <div style={{display:'none'}} data-mm-names={JSON.stringify(slots.slice(0, slotsCount).map(s=>s.name))} id="mmNamesCarrier" />
       <iframe ref={iframeRef} title="PokemonZ" src="/pokemonz.html" style={{border:'2px solid #00ffff', boxShadow:'0 0 15px rgba(0,255,255,0.4)', width:'96%', height:'88vh', borderRadius: '8px'}} />
     </div>
   );

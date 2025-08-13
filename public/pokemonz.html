@@ -243,7 +243,7 @@
     <header>
       <div class="brand"><div class="logo">PokemonZ</div><div class="subtitle">Live slow, play whenever.</div></div>
       <div class="hud">
-        <button id="btnHelp" class="btn" data-tip="Anleitung ein-/ausblenden">Hilfe</button>
+        <button id="btnHelp" class="btn">Hilfe</button>
         <button id="btnSettings" class="btn" data-tip="Einstellungen öffnen">⚙️</button>
         <button id="btnTutorial" class="btn" data-tip="Geführtes Tutorial starten/fortsetzen">Tutorial</button>
         <button id="btnNewRound" class="btn primary" data-tip="Neue Runde: mischen, austeilen, Top/Trumpf aufdecken">Neue Runde</button>
@@ -269,10 +269,10 @@
         </div>
         <div class="setRow">
           <span class="pill">Spieler:
-            <select id="uiPlayers" title="Anzahl Spieler" aria-label="Spieleranzahl">
-              <option value="3" selected>3</option>
-              <option value="4">4</option>
-            </select>
+             <select id="uiPlayers" title="Anzahl Spieler" aria-label="Spieleranzahl">
+               <option value="3" selected>3</option>
+               <option value="4">4</option>
+             </select>
           </span>
           <span class="pill">Ziel:
             <input id="uiTarget" type="number" value="200" min="40" step="10" style="width:80px" title="Zielpunkte" aria-label="Zielpunkte" />
@@ -304,11 +304,11 @@
     <div class="panel hidden" id="preControls" data-help="prephase">
       <div class="hud" style="flex-wrap:wrap; gap:10px; align-items:center">
         <span id="preStepPill" class="pill" style="display:none">Modus: <b id="preStepLabel"></b></span>
-        <button id="btnRaise" class="btn" data-tip="Risiko-Modus aktivieren: zählt für den Runden-Multiplikator">Risiko‑Modus</button>
+        <button id="btnRaise" class="btn" data-tip="Risiko: Gewinn ×2/×3, Verlust: Abzug der Basispunkte (bei ×3 doppelt)">Risiko‑Modus</button>
         <button id="btnRaiseNo" class="btn" data-tip="Sicherer Modus: keine Risiko-Beteiligung">Sicherer Modus</button>
         <span id="riskDesc" class="subtitle" style="margin-left:auto; max-width:520px">Traust du dich, aufs Ganze zu gehen? Wenn du den Multiplikator setzt und gewinnst, bekommst du doppelte oder sogar dreifache Punkte. Aber Vorsicht: Verlierst du, dann gehen alle Punkte dieser Runde in den Keller – und bei Dreifach sogar doppelt so tief.</span>
-        <button id="btnSwapTop" class="btn" data-tip="Trumpfkarte tauschen: Tausche die aufgedeckte Trumpfkarte (Topkarte) mit einer Handkarte (1× in der Vorphase).">Trumpfkarte tauschen</button>
-        <button id="btnOpferJoker" class="btn" data-tip="Joker ablegen: Entferne einen Joker aus deiner Hand und erhalte +7 Bonuspunkte und 1 virtuellen Stich.">Joker ablegen +7</button>
+        <button id="btnSwapTop" class="btn" data-tip="Trumpfkarte tauschen: Lege 1 Handkarte ab – neue Topkarte wird aufgedeckt (1× in der Vorphase).">Trumpfkarte tauschen</button>
+        <button id="btnOpferJoker" class="btn" data-tip="Joker ablegen: +7 Punkte und +1 virtueller Stich">Joker ablegen +7</button>
         <button id="btnPrephaseDone_inline" class="btn primary" style="border-width:3px; box-shadow:0 0 18px rgba(0,255,255,0.7)" data-tip="Vorphase: Deine Entscheidung speichern & weiter" disabled>Weiter (Bereit 0/0)</button>
       </div>
       <div id="preMeter"></div>
@@ -332,7 +332,7 @@
 
         <div class="row" data-help="hand">
           <div class="hud" id="handTools" style="justify-content:flex-end; align-items:center; margin-bottom:4px">
-            <button id="btnHandHelp" class="btn mini" data-tip="Zeigt die geschätzte Gewinnwahrscheinlichkeit unter jeder Handkarte">Help</button>
+            <button id="btnHandHelp" class="btn mini">Help</button>
           </div>
           <div id="yourHand" class="hand"></div>
           <div id="handMeta"></div>
@@ -402,12 +402,14 @@
     <div class="help-panel">
       <button class="btn" id="btnHelpClose" data-tip="Hilfe schließen">Schließen</button>
       <h2>Kurzanleitung</h2>
-      <div class="help-item" data-target="[data-help=talon]"><b>Talon & Trumpf</b><small>Oberste Karte (Gold) bestimmt die Trumpffarbe. Gegenüber liegt eine <b>Reservekarte</b> (Silber). In der Vorphase: Joker ↔ Reserve tauschen → Bonus als virtueller Stich. Buben sind immer Trumpf, Joker sticht alles.</small></div>
-      <div class="help-item" data-target="#preControls"><b>Vorphase (Reihum)</b><small>Reihenfolge siehe <b>Pre‑Flow‑Meter</b>. Pro Spieler: <i>Ansage?</i> · <i>Joker tauschen?</i> · <i>Topkarte tauschen?</i>. Danach startet automatisch die Stichphase.</small></div>
-      <div class="help-item" data-target="[data-help=trick]"><b>Stichbereich</b><small>Hier landen die gespielten Karten. Gewinner wird hervorgehoben – per Hover mit Begründung.</small></div>
-      <div class="help-item" data-target="[data-help=hand]"><b>Deine Hand</b><small>Klicke eine grün markierte (legale) Karte. Farbzwang gilt; Trumpf sticht (Joker > Bube > Trumpf).</small></div>
-      <div class="help-item" data-target="[data-help=score]"><b>Score & Status</b><small>Gesamtpunkte, Gefahrenzone, Ansage, Stiche. Nach 5 Stichen: Rundenwertung.</small></div>
-      <div class="help-item" data-target="[data-help=log]"><b>Log</b><small>Alle Ereignisse: Züge, Tausch, Joker‑Tausch (Reserve), Stichgewinner, Rundenpunkte.</small></div>
+      <div class="help-item" data-target="#scoreWrap"><b>Ziel</b><small>Gewinne Stiche, sammle Punkte, erreiche als Erster die Zielpunktzahl. Punktestand siehst du oben rechts.</small></div>
+      <div class="help-item" data-target="#cardLegend"><b>Karten & Werte</b><small>Ass 11 · Zehn 10 · König 4 · Dame 3 · Bube 2 · Joker 0. Reihenfolge: Joker > Bube > (Trumpf) > angespielte Farbe.</small></div>
+      <div class="help-item" data-target="[data-help=talon]"><b>Talon & Trumpf</b><small>Topkarte (Gold) bestimmt die Trumpffarbe. Reserve (Silber) bleibt verdeckt. In der Vorphase kannst du 1 Handkarte ablegen – es wird eine neue Topkarte aufgedeckt.</small></div>
+      <div class="help-item" data-target="#preControls"><b>Vorphase</b><small>1) Risiko wählen (Gewinn ×2/×3; Verlust: Abzug deiner Basispunkte bis max. ×2). 2) 1 Karte ablegen → neue Trumpfkarte. 3) Joker ablegen = +7 und +1 virtueller Stich.</small></div>
+      <div class="help-item" data-target="[data-help=hand]"><b>Deine Hand</b><small>Klicke eine <span style="color:var(--ok)">grün</span> markierte (legale) Karte. Farbzwang: Bediene die ausgespielte Farbe, falls möglich.</small></div>
+      <div class="help-item" data-target="[data-help=trick]"><b>Stich</b><small>Höchste Karte der geforderten Farbe gewinnt – außer ein Trumpf liegt: Joker > Bube > Trumpf.</small></div>
+      <div class="help-item" data-target="[data-help=score]"><b>Punkte & Runden</b><small>Punkte zählen am Rundenende (inkl. Risiko). Danach startet automatisch die nächste Runde.</small></div>
+      <div class="help-item" data-target="[data-help=log]"><b>Log</b><small>Alle Ereignisse: Züge, Tausch, Joker‑Ablage, Stichgewinner, Rundenpunkte.</small></div>
       <div class="hud" style="margin-top:10px"><button class="btn" id="btnHelpDemo" data-tip="Kurzer Ablauf anzeigen">Kurzer Ablauf</button></div>
       <div class="subtitle" style="margin-top:8px">Tipp: Elemente hovern → zugehörige UI wird markiert.</div>
     </div>
@@ -516,7 +518,7 @@ function updatePreControlsVisibility(){ try{
     if(btnRaise) btnRaise.classList.add('pulse');
     if(btnRaiseNo) btnRaiseNo.classList.add('pulse');
     preControls.classList.add('outlinePulse');
-    if(riskDesc){ riskDesc.style.display=''; riskDesc.textContent='Traust du dich, aufs Ganze zu gehen? Wenn du den Multiplikator setzt und gewinnst, bekommst du doppelte oder sogar dreifache Punkte. Aber Vorsicht: Verlierst du, dann gehen alle Punkte dieser Runde in den Keller – und bei Dreifach sogar doppelt so tief.'; }
+    if(riskDesc){ riskDesc.style.display=''; riskDesc.textContent='Risiko: Gewinn ×2/×3. Verlust: Abzug deiner Basispunkte (bei ×3 doppelt).'; }
   } else if(step===1){
     if(btnSwapTop) btnSwapTop.style.display='';
     // Offer explicit Pass for human (one click), swap remains directly usable
@@ -759,14 +761,26 @@ function explainWinnerHTML(trick,trumpSuit,ansFlags,res){
 }
 
 /* Render */
-function renderScore(){
+  function renderScore(){
   if(!scoreWrap) return; scoreWrap.innerHTML='';
   const target=tour.target||200; let max=0; for(let i=0;i<tour.N;i++){ max=Math.max(max,tour.totals[i]||0); }
   for(let i=0;i<tour.N;i++){
     const sc=document.createElement('div'); sc.className='scCard pc'+i;
     const head=document.createElement('div'); head.className='scHead';
-    const name=document.createElement('div'); name.className='scName'; name.textContent=(i===0?'Du (p0)':'p'+i);
-    const pill=document.createElement('div'); pill.className='scPill'; pill.textContent=(tour.danger[i]?'Gefahrenzone':'');
+      const name=document.createElement('div'); name.className='scName';
+      try{
+        // Prefer provided player names from parent if available
+        const n = (window.__MM_NAMES__ && Array.isArray(window.__MM_NAMES__)) ? (window.__MM_NAMES__[i] || null) : null;
+        if(n){ name.textContent = String(n); }
+        else { name.textContent=(i===0?'Du (p0)':'p'+i); }
+      }catch(_){ name.textContent=(i===0?'Du (p0)':'p'+i); }
+      const pill=document.createElement('div'); pill.className='scPill';
+      // Show round multiplier x2/x3 for everyone when raised; else show danger
+      try{
+        const mult = (typeof computeGML==='function'? computeGML() : (G && G._raiseMultiplier) || 1) || 1;
+        if(mult>1){ pill.textContent = 'x'+mult; }
+        else { pill.textContent=(tour.danger[i]?'Gefahrenzone':''); }
+      }catch(_){ pill.textContent=(tour.danger[i]?'Gefahrenzone':''); }
     head.appendChild(name); head.appendChild(pill); sc.appendChild(head);
     // Show 2x indicator when raise accepted (round-level)
     try{ if(typeof accepted!=='undefined' && accepted){ const mult=document.createElement('div'); mult.className='scPill'; mult.textContent='x2'; head.appendChild(mult); } }catch(_){ }
@@ -886,7 +900,7 @@ function renderTopTrump(){
   const resCol=document.createElement('div'); resCol.style.position='relative'; resCol.style.zIndex='1'; resCol.style.minWidth='calc(var(--tileW) * var(--mini) * 1.8)';
   const rStack=document.createElement('div'); rStack.className='stack talonBig'; rStack.style.marginBottom='12px'; const rTop=document.createElement('div'); rTop.className='miniCard silver reserveTop'; const rUnder=document.createElement('div'); rUnder.className='miniCard under'; rStack.appendChild(rUnder); rStack.appendChild(rTop);
   resCol.appendChild(rStack);
-  const rInfo=document.createElement('div'); rInfo.className='talonInfo'; rInfo.style.zIndex='1'; const rLabel='Reserve: '+(hasGame()? (G.reserve? 'verdeckt':'entnommen'):'-'); rInfo.innerHTML='<span class="tag" data-tip="Verdeckte Reservekarte. In der Vorphase kannst du einen Joker dagegen tauschen und Bonus erhalten.">'+rLabel+'</span>';
+  const rInfo=document.createElement('div'); rInfo.className='talonInfo'; rInfo.style.zIndex='1'; const rLabel='Reserve: '+(hasGame()? (G.reserve? 'verdeckt':'entnommen'):'-'); rInfo.innerHTML='<span class="tag" data-tip="Verdeckte Reservekarte. Joker‑Ablage ist separat: +7 Punkte und +1 Stich.">'+rLabel+'</span>';
   resCol.appendChild(rInfo); talonBox.appendChild(resCol);
   wrap.appendChild(talonBox); topTrumpEl.appendChild(wrap); bindTooltips();
 }
@@ -1244,8 +1258,8 @@ function advancePreCursor(){
 function computeRoundLeader(){ if(tour.round<=1){ return (Math.random()*tour.N)|0; } let min=Infinity, idx=0; for(let i=0;i<tour.N;i++){ const t=tour.totals[i]||0; if(t<min){ min=t; idx=i; } } return idx; }
 
 /* Lifecycle */
-function resetTournament(){ const nVal=parseInt((uiPlayers&&uiPlayers.value)||'3',10); const tVal=parseInt((uiTarget&&uiTarget.value)||'200',10); const jVal=parseInt((uiJokerB&&uiJokerB.value)||'15',10); tour.N=isFinite(nVal)?nVal:3; tour.target=isFinite(tVal)?tVal:200; tour.jokerBonus=isFinite(jVal)?jVal:15; tour.totals=Array(tour.N).fill(0); tour.danger=Array(tour.N).fill(false); tour.round=0; renderScore(); }
-function newRound(){ clearTimeout(aiTimer); const nVal=parseInt((uiPlayers&&uiPlayers.value)||'3',10); const tVal=parseInt((uiTarget&&uiTarget.value)||'200',10); const jVal=parseInt((uiJokerB&&uiJokerB.value)||'15',10); tour.N=isFinite(nVal)?nVal:3; tour.target=isFinite(tVal)?tVal:200; tour.jokerBonus=isFinite(jVal)?jVal:15; tour.round++; const deck=shuffle(makeDeck()); const hands=Array.from({length:tour.N},()=>[]); for(let r=0;r<5;r++){ for(let p=0;p<tour.N;p++){ const c=deck.shift(); if(c) hands[p].push(c); } } const top=deck.shift(); const reserve=deck.shift(); const trumpSuit=topcardTrump(top); const leader=computeRoundLeader(); G={deck,hands,top,reserve,trumpSuit,leader,trick:[],piles:Array.from({length:tour.N},()=>[]),trickWins:Array(tour.N).fill(0),ansage:Array(tour.N).fill(0),jokers:Array(tour.N).fill(0),trumpSwapped:Array(tour.N).fill(false),phase:'pre',you:0,_evalRes:null,preCursor:leader,decidedPre:Array(tour.N).fill(false)};
+ function resetTournament(){ const nVal=parseInt((uiPlayers&&uiPlayers.value)||'3',10); const tVal=parseInt((uiTarget&&uiTarget.value)||'200',10); const jVal=parseInt((uiJokerB&&uiJokerB.value)||'15',10); tour.N=isFinite(nVal)?nVal:3; tour.N=Math.max(2, Math.min(4, tour.N)); tour.target=isFinite(tVal)?tVal:200; tour.jokerBonus=isFinite(jVal)?jVal:15; tour.totals=Array(tour.N).fill(0); tour.danger=Array(tour.N).fill(false); tour.round=0; renderScore(); }
+ function newRound(){ clearTimeout(aiTimer); const nVal=parseInt((uiPlayers&&uiPlayers.value)||'3',10); const tVal=parseInt((uiTarget&&uiTarget.value)||'200',10); const jVal=parseInt((uiJokerB&&uiJokerB.value)||'15',10); tour.N=isFinite(nVal)?nVal:3; tour.N=Math.max(2, Math.min(4, tour.N)); tour.target=isFinite(tVal)?tVal:200; tour.jokerBonus=isFinite(jVal)?jVal:15; tour.round++; const deck=shuffle(makeDeck()); const hands=Array.from({length:tour.N},()=>[]); for(let r=0;r<5;r++){ for(let p=0;p<tour.N;p++){ const c=deck.shift(); if(c) hands[p].push(c); } } const top=deck.shift(); const reserve=deck.shift(); const trumpSuit=topcardTrump(top); const leader=computeRoundLeader(); G={deck,hands,top,reserve,trumpSuit,leader,trick:[],piles:Array.from({length:tour.N},()=>[]),trickWins:Array(tour.N).fill(0),ansage:Array(tour.N).fill(0),jokers:Array(tour.N).fill(0),trumpSwapped:Array(tour.N).fill(false),phase:'pre',you:0,_evalRes:null,preCursor:leader,decidedPre:Array(tour.N).fill(false)};
   // reset pre-discard trackers and show swap buttons wieder
   G.topHistory=[]; G.jokerDiscards=[]; G.topSwapDiscards=[];
   // initialize step flow
@@ -1391,15 +1405,16 @@ function coachPosTo(el){ const r=safeRect(el); let x=r.left+Math.min(r.width,340
 function coachHide(){ coach.classList.remove('show'); const mask=document.getElementById('coachMask'); if(mask) mask.classList.remove('show'); clearHelpHighlights(); clearTimeout(TUT.safetyTimer); }
   function tutBuild(){
     TUT.steps=[
-      { id:'intro', sel:'#cardLegend', wait:null, html:'Ziel: Erreiche als Erster die Zielpunktzahl. Werte und Reihenfolgen stehen in der kompakten Legende.' },
-      { id:'autoStart', sel:'#preControls', wait:'round:new', html:'Neue Runde: Oben siehst du Top (Gold) und Reserve (Silber). Die Vorphase läuft reihum in drei Schritten.' },
-      { id:'preRisk', sel:'#preControls', wait:null, html:'Schritt 1 – Ansage: Wähle <b>Risiko‑Modus</b> (für 2×/3×) oder <b>Sicherer Modus</b>. GML skaliert am Rundenende – bei Verlust gilt die Abzugsregel.' },
-      { id:'preSwap', sel:'#topTrump', wait:null, html:'Schritt 2 – Trumpfkarte tauschen: Lege eine Handkarte ab, die neue Top bestimmt die Trumpffarbe. Nach dem Tausch geht es automatisch weiter.' },
-      { id:'preJoker', sel:'#preControls', wait:'phase:pre:done', html:'Schritt 3 – Joker ablegen: Tausche deinen Joker für +7 und einen virtuellen Stich oder passe. Danach startet die Stichphase.' },
-      { id:'playLead', sel:'#yourHand', wait:'play:human:card', html:'Stich: Spiele eine <span style="color:var(--ok)">grün</span> markierte Karte. Farbzwang beachten. Hilfe‑Button zeigt Gewinnwahrscheinlichkeiten.' },
-      { id:'playAi', sel:'#trickZone', wait:'play:trick:full', html:'Alle spielen. Die Gewinnerkarte wird hervorgehoben; per Hover siehst du die Begründung.' },
-      { id:'eval', sel:'#trickControls', wait:'trick:finalized', html:'Auswertung: „Weiter“ übernimmt den Stich. Ein Countdown löst automatisch aus, kann aber gestoppt werden.' },
-      { id:'round', sel:'#scoreWrap', wait:'round:end', html:'Rundenwertung: GML anwenden – Sieger mit Ansage erhalten ×GML, Verlierer mit Ansage −Basispunkte×(GML−1), andere unverändert.' }
+      { id:'intro', sel:'#scoreWrap', wait:null, html:'Willkommen! Ziel ist es, Stiche zu gewinnen und als Erster die Zielpunktzahl zu erreichen.' },
+      { id:'autoStart', sel:'#scoreWrap', wait:'round:new', html:'Hier siehst du deinen Punktestand. Starte mit „Neue Runde“.' },
+      { id:'preRisk', sel:'#preControls', wait:null, html:'Phase 2 – Risiko: Gewinn ×2/×3, Verlust: Abzug deiner Basispunkte. Wähle <b>Risiko</b> oder überspringe.' },
+      { id:'preSwap', sel:'#topTrump', wait:null, html:'Phase 3 – Kartentausch & Trumpf: Lege 1 Handkarte ab. Es wird eine neue Topkarte aufgedeckt, die die Trumpffarbe bestimmt.' },
+      { id:'preJoker', sel:'#yourHand', wait:null, html:'Phase 4 – Joker-Startbonus: Hast du einen Joker? Lege ihn jetzt ab: +7 Punkte und +1 virtueller Stich.' },
+      { id:'preDone', sel:'#preControls', wait:'phase:pre:done', html:'Die Vorphase ist abgeschlossen. Es geht weiter zum Stich.' },
+      { id:'playLead', sel:'#yourHand', wait:'play:human:card', html:'Phase 5 – Stich: Spiele eine <span style="color:var(--ok)">grün</span> markierte Karte. Du musst die ausgespielte Farbe bedienen, wenn möglich.' },
+      { id:'playAi', sel:'#trickZone', wait:'play:trick:full', html:'Höchste Karte der geforderten Farbe gewinnt – es sei denn, Trumpf sticht: Joker > Bube > Trumpf.' },
+      { id:'eval', sel:'#trickControls', wait:'trick:finalized', html:'„Weiter“ übernimmt den Stich. Auto‑Timer kann gestoppt werden.' },
+      { id:'round', sel:'#scoreWrap', wait:'round:end', html:'Phase 6 – Rundenergebnis: Punkte zählen, Risiko anwenden, nächste Runde starten.' }
     ];
   }
 function tutStart(){ TUT.active=true; TUT.step=0; tutBuild(); tutShowStep(); if(!hasGame()) newRound(); }
@@ -1625,6 +1640,27 @@ init();
       case 'POKEMONZ_APPLY_STATE':
         applySnapshot(msg.payload);
         break;
+      case 'POKEMONZ_MATCH_START': {
+        try{
+          // Use payload if provided by parent
+          if(msg.payload && typeof msg.payload.count==='number'){
+            const nSel = Math.max(2, Math.min(4, msg.payload.count|0));
+            if(uiPlayers) uiPlayers.value = String(nSel);
+          }
+          if(msg.payload && Array.isArray(msg.payload.names)){
+            window.__MM_NAMES__ = msg.payload.names.slice();
+          } else {
+            // Fallback to hidden carrier div
+            const carrier=document.getElementById('mmNamesCarrier');
+            if(carrier){
+              const raw=carrier.getAttribute('data-mm-names');
+              if(raw){ window.__MM_NAMES__ = JSON.parse(raw); }
+            }
+          }
+          renderScore();
+        }catch(_){ }
+        try{ if(!hasGame()){ resetTournament(); } newRound(); }catch(_){ }
+        break; }
       case 'POKEMONZ_EMOTE_SHOW': {
         try{
           // Prefer anchor on p0 scoreboard card

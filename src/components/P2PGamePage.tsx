@@ -6,6 +6,7 @@ import { DebugPanel } from './DebugPanel';
 import { Category, GameContext } from '../game/types';
 import { P2PGameManager } from '../network/gameManager';
 import { connectToPeer, isConnected, sendPlayerInfo, localPlayerId, disconnect } from '../network/webrtc';
+import MatchmakingModal, { MatchmakingSlot } from './MatchmakingModal';
 
 // Default URL for the signaling server (should be set in environment)
 const DEFAULT_SIGNALING_URL = import.meta.env.VITE_SIGNALING_URL || 'wss://politicat-signaling.onrender.com';
@@ -21,6 +22,14 @@ export const P2PGamePage: React.FC = () => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [gameManager, setGameManager] = useState<P2PGameManager | null>(null);
   const [signalingUrl, setSignalingUrl] = useState<string>(DEFAULT_SIGNALING_URL);
+  const [isMMOpen, setIsMMOpen] = useState<boolean>(false);
+  const [slotsCount, setSlotsCount] = useState<number>(3);
+  const [slots, setSlots] = useState<MatchmakingSlot[]>([
+    { name: playerName, connected: true, isAI: false },
+    { name: remoteName || 'Waiting…', connected: false, isAI: false },
+    { name: '—', connected: false, isAI: false },
+    { name: '—', connected: false, isAI: false },
+  ]);
 
   const navigate = useNavigate();
 
@@ -46,6 +55,15 @@ export const P2PGamePage: React.FC = () => {
     };
   }, [playerName]);
 
+  // Keep slot[0] name in sync
+  useEffect(() => {
+    setSlots(prev => {
+      const next = [...prev];
+      next[0] = { ...next[0], name: playerName, connected: connectionStatus === 'connected', isAI: false };
+      return next;
+    });
+  }, [playerName, connectionStatus]);
+
   // Handle room creation (as host)
   const handleCreateRoom = useCallback(async () => {
     if (!gameManager) return;
@@ -58,6 +76,15 @@ export const P2PGamePage: React.FC = () => {
     // Connect to signaling server with room ID
     setConnectionStatus('connecting');
 
+    // Open matchmaking immediately so status is visible during connect
+    setIsMMOpen(true);
+    setSlots(prev => {
+      const next = [...prev];
+      next[0] = { name: playerName, connected: false, isAI: false };
+      next[1] = { name: remoteName || 'Waiting…', connected: false, isAI: false };
+      return next;
+    });
+
     // Ensure the room parameter is properly added to the URL
     const signalingUrlWithRoom = `${signalingUrl}${signalingUrl.includes('?') ? '&' : '?'}room=${newRoomId}`;
     console.log(`Connecting to signaling server as host: ${signalingUrlWithRoom}`);
@@ -69,6 +96,13 @@ export const P2PGamePage: React.FC = () => {
         // Initialize game as host once connected
         gameManager.initGame(remoteName || 'Opponent', true); // Set as initiator
         setConnectionStatus('connected');
+        setIsMMOpen(true);
+        setSlots(prev => {
+          const next = [...prev];
+          next[0] = { name: playerName, connected: true, isAI: false };
+          next[1] = { name: remoteName || 'Waiting…', connected: false, isAI: false };
+          return next;
+        });
       } else {
         setConnectionError('Failed to connect to signaling server');
         setConnectionStatus('disconnected');
@@ -85,6 +119,15 @@ export const P2PGamePage: React.FC = () => {
 
     setIsHost(false);
     setConnectionStatus('connecting');
+
+    // Open matchmaking immediately while connecting
+    setIsMMOpen(true);
+    setSlots(prev => {
+      const next = [...prev];
+      next[0] = { name: remoteName || 'Host', connected: false, isAI: false };
+      next[1] = { name: playerName, connected: false, isAI: false };
+      return next;
+    });
 
     // Connect to signaling server with provided room ID
     const signalingUrlWithRoom = `${signalingUrl}${signalingUrl.includes('?') ? '&' : '?'}room=${roomId}`;
@@ -105,6 +148,13 @@ export const P2PGamePage: React.FC = () => {
         gameManager.initGame(remoteName || 'Host', false);
 
         setConnectionStatus('connected');
+        setIsMMOpen(true);
+        setSlots(prev => {
+          const next = [...prev];
+          next[1] = { name: playerName, connected: true, isAI: false };
+          next[0] = { name: remoteName || 'Host', connected: true, isAI: false };
+          return next;
+        });
       } else {
         setConnectionError('Failed to connect to room');
         setConnectionStatus('disconnected');
@@ -232,6 +282,25 @@ export const P2PGamePage: React.FC = () => {
       <div className="connection-indicator">
         {connectionStatus === 'connected' ? '🟢 Connected' : '🔴 Disconnected'}
       </div>
+      <MatchmakingModal
+        isOpen={isMMOpen}
+        isHost={isHost}
+        roomId={roomId}
+        slotsCount={slotsCount}
+        allowedCounts={[3,4]}
+        slots={slots}
+        onChangeSlotsCount={(n)=> setSlotsCount(n)}
+        onFillAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: `AI ${idx+1}`, connected: true, isAI: true }; return next; })}
+        onKickAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: '—', connected: false, isAI: false }; return next; })}
+        onStart={()=>{
+          setIsMMOpen(false);
+          // Risiko-Phase: Setze initial direkt in DRAW_PHASE, dann CATEGORY_SELECTION_BOTH
+          setTimeout(()=>{
+            setGame(prev=> prev ? { ...prev, state: 1 as any } : prev);
+          }, 50);
+        }}
+        onClose={()=> setIsMMOpen(false)}
+      />
 
       {game && (
         <>
