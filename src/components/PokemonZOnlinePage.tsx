@@ -17,6 +17,8 @@ export const PokemonZOnlinePage: React.FC = () => {
   // const [remoteName, setRemoteName] = useState<string>('');
   const [roomId, setRoomId] = useState<string>('');
   const [isHost, setIsHost] = useState<boolean>(true);
+  const isHostRef = useRef<boolean>(isHost);
+  useEffect(()=>{ isHostRef.current = isHost; }, [isHost]);
   const [signalingUrl] = useState<string>(DEFAULT_SIGNALING_URL);
   const [status, setStatus] = useState<ConnStatus>('disconnected');
   const [error, setError] = useState<string | null>(null);
@@ -192,6 +194,14 @@ export const PokemonZOnlinePage: React.FC = () => {
           }
         } else if (netMsg?.type === MessageType.GAME_ACTION){
           const action = netMsg.data || {};
+          if(action.kind === 'MM_START'){
+            // Close modal and forward start to iframe on guest
+            setIsMMOpen(false);
+            const count = action.count || 3;
+            const names = Array.isArray(action.names) ? action.names : [];
+            postToIframe({ type: 'POKEMONZ_MATCH_START', payload: { count, names } });
+            return;
+          }
           if(action.kind === 'EMOTE' && action.emoji){
             postToIframe({ type: 'POKEMONZ_EMOTE_SHOW', payload: action.emoji });
           } else if (action.kind === 'RAISE_REQUEST'){
@@ -318,14 +328,16 @@ export const PokemonZOnlinePage: React.FC = () => {
         slotsCount={slotsCount}
         allowedCounts={[3,4]}
         slots={slots}
-        onChangeSlotsCount={(n)=> { if(isHost) setSlotsCount(n); }}
-        onFillAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: `AI ${idx+1}`, connected: true, isAI: true }; return next; })}
-        onKickAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: '—', connected: false, isAI: false }; return next; })}
+        onChangeSlotsCount={(n)=> { if(isHostRef.current) setSlotsCount(n); }}
+        onFillAI={(idx)=> { if(!isHostRef.current) return; setSlots(prev=>{ const next=[...prev]; next[idx] = { name: `AI ${idx+1}`, connected: true, isAI: true }; return next; }); }}
+        onKickAI={(idx)=> { if(!isHostRef.current) return; setSlots(prev=>{ const next=[...prev]; next[idx] = { name: '—', connected: false, isAI: false }; return next; }); }}
         onStart={()=>{
-          if(!isHost) return; // only host can start
+          if(!isHostRef.current) return; // only host can start
           setIsMMOpen(false);
           const names = slots.slice(0, slotsCount).map(s=>s.name);
           postToIframe({ type: 'POKEMONZ_MATCH_START', payload: { count: slotsCount, names } });
+          // Broadcast start to peer so guest closes modal and starts too
+          try { sendGameAction({ kind: 'MM_START', count: slotsCount, names }); } catch {}
           // Also notify guest page state to close their modal (no iframe on guest)
           try { window.localStorage.setItem('MB3_MM_STARTED', '1'); } catch {}
         }}
