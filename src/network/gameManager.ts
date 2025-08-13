@@ -25,6 +25,7 @@ export interface GameEvents {
   onConnectionStatus?: (connected: boolean) => void;
   onError?: (error: string) => void;
   onDisconnect?: () => void; // New callback for handling disconnection
+  onRemotePlayerInfo?: (player: Player) => void; // Notify UI when remote announces
 }
 
 // P2P game session manager
@@ -218,6 +219,11 @@ export class P2PGameManager {
       // Update player2 with the remote player info
       this.game.player2.name = remotePlayer.name;
       this.updateGame(this.game);
+    }
+
+    // Inform UI so it can mark matchmaking slots as connected
+    if (this.events.onRemotePlayerInfo) {
+      try { this.events.onRemotePlayerInfo(remotePlayer); } catch (_) { /* ignore */ }
     }
   }
 

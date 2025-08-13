@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { connectToPeer, disconnect, isConnected, localPlayerId, sendGameState, sendGameAction } from '../network/webrtc';
+import { connectToPeer, disconnect, isConnected, localPlayerId, sendGameState, sendGameAction, sendPlayerInfo } from '../network/webrtc';
 import MatchmakingModal, { MatchmakingSlot } from './MatchmakingModal';
 // import { GameStateSync } from '../network/stateSync';
 
@@ -31,6 +31,23 @@ export const PokemonZOnlinePage: React.FC = () => {
     { name: '—', connected: false, isAI: false },
     { name: '—', connected: false, isAI: false },
   ]);
+
+  // Send our player info once the data channel is open
+  const trySendSelfInfo = useCallback(() => {
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries++;
+      try {
+        if (isConnected()) {
+          sendPlayerInfo({ name: playerName, deck: [], isAI: false } as any);
+          clearInterval(timer);
+        }
+      } catch {}
+      if (tries >= 40) { // ~6s max
+        clearInterval(timer);
+      }
+    }, 150);
+  }, [playerName]);
 
   // Prefill room from URL param if present
   useEffect(() => {
@@ -101,11 +118,13 @@ export const PokemonZOnlinePage: React.FC = () => {
         postToIframe({ type: 'POKEMONZ_VIEWER_MODE', payload: false });
         setIsMMOpen(true);
         setSlots(prev => { const next=[...prev]; next[0] = { name: playerName, connected: true, isAI: false }; return next; });
+        // Announce self to guest when channel is ready
+        trySendSelfInfo();
       }else{
         setStatus('disconnected'); setError('Failed to connect to signaling server');
       }
     }catch(e){ setStatus('disconnected'); setError(e instanceof Error ? e.message : 'Unknown error'); }
-  }, [postToIframe, signalingUrl]);
+  }, [postToIframe, signalingUrl, trySendSelfInfo]);
 
   // Guest: join room
   const handleJoinRoom = useCallback(async () => {
@@ -121,11 +140,13 @@ export const PokemonZOnlinePage: React.FC = () => {
         postToIframe({ type: 'POKEMONZ_VIEWER_MODE', payload: true });
         setIsMMOpen(true);
         setSlots(prev => { const next=[...prev]; next[1] = { name: playerName, connected: true, isAI: false }; return next; });
+        // Send our identity to host when channel is ready
+        trySendSelfInfo();
       }else{
         setStatus('disconnected'); setError('Failed to connect to room');
       }
     }catch(e){ setStatus('disconnected'); setError(e instanceof Error ? e.message : 'Unknown error'); }
-  }, [roomId, postToIframe, signalingUrl]);
+  }, [roomId, postToIframe, signalingUrl, trySendSelfInfo]);
 
   // Handle incoming peer messages: forward snapshots into iframe
   useEffect(()=>{
@@ -171,12 +192,26 @@ export const PokemonZOnlinePage: React.FC = () => {
             // Inform iframe about result
             postToIframe({ type: 'POKEMONZ_RAISE_RESULT', payload: { accepted: !!action.accepted } });
           }
+        } else if (netMsg?.type === MessageType.PLAYER_INFO){
+          const p = netMsg.data || { name: 'Remote' };
+          // Update matchmaking slots to reflect both sides connected
+          setSlots(prev => {
+            const next=[...prev];
+            if(isHost){
+              next[0] = { ...next[0], connected: true, isAI: false };
+              next[1] = { name: p.name || next[1].name || 'Player 2', connected: true, isAI: false };
+            } else {
+              next[1] = { ...next[1], connected: true, isAI: false };
+              next[0] = { name: p.name || next[0].name || 'Player 1', connected: true, isAI: false };
+            }
+            return next;
+          });
         }
       };
       addMessageHandler(fn);
       return () => removeMessageHandler(fn);
     })();
-  }, [postToIframe]);
+  }, [postToIframe, isHost]);
 
   const handleReturn = useCallback(()=>{
     disconnect();

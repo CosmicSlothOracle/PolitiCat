@@ -44,6 +44,20 @@ export const P2PGamePage: React.FC = () => {
       },
       onError: (error) => {
         setConnectionError(error);
+      },
+      onRemotePlayerInfo: (remote)=>{
+        // Mark slot 1/2 as connected appropriately on remote info arrival
+        setSlots(prev=>{
+          const next=[...prev];
+          if(isHost){
+            next[1] = { name: remote.name || 'Player 2', connected: true, isAI: false };
+            next[0] = { ...next[0], connected: true, isAI: false };
+          } else {
+            next[0] = { name: remote.name || 'Host', connected: true, isAI: false };
+            next[1] = { ...next[1], connected: true, isAI: false };
+          }
+          return next;
+        });
       }
     });
 
