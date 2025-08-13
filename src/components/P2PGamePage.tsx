@@ -318,10 +318,11 @@ export const P2PGamePage: React.FC = () => {
         slotsCount={slotsCount}
         allowedCounts={[3,4]}
         slots={slots}
-        onChangeSlotsCount={(n)=> setSlotsCount(n)}
+        onChangeSlotsCount={(n)=> { if(isHost) setSlotsCount(n); }}
         onFillAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: `AI ${idx+1}`, connected: true, isAI: true }; return next; })}
         onKickAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: '—', connected: false, isAI: false }; return next; })}
         onStart={()=>{
+          if(!isHost) return; // only host can start the game
           setIsMMOpen(false);
           // Risiko-Phase: Setze initial direkt in DRAW_PHASE, dann CATEGORY_SELECTION_BOTH
           setTimeout(()=>{

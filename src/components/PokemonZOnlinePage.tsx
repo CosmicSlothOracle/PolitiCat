@@ -309,10 +309,11 @@ export const PokemonZOnlinePage: React.FC = () => {
         slotsCount={slotsCount}
         allowedCounts={[3,4]}
         slots={slots}
-        onChangeSlotsCount={(n)=> setSlotsCount(n)}
+        onChangeSlotsCount={(n)=> { if(isHost) setSlotsCount(n); }}
         onFillAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: `AI ${idx+1}`, connected: true, isAI: true }; return next; })}
         onKickAI={(idx)=> setSlots(prev=>{ const next=[...prev]; next[idx] = { name: '—', connected: false, isAI: false }; return next; })}
         onStart={()=>{
+          if(!isHost) return; // only host can start
           setIsMMOpen(false);
           const names = slots.slice(0, slotsCount).map(s=>s.name);
           postToIframe({ type: 'POKEMONZ_MATCH_START', payload: { count: slotsCount, names } });

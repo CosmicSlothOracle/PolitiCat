@@ -52,7 +52,10 @@ export const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
             <button
               key={n}
               className={`play-button ${n === slotsCount ? '' : ''}`}
-              onClick={() => onChangeSlotsCount(n)}
+              onClick={() => { if(isHost) onChangeSlotsCount(n); }}
+              disabled={!isHost}
+              aria-disabled={!isHost}
+              title={isHost ? 'Change player slots' : 'Only the host can change slots'}
             >
               {n}
             </button>
