@@ -50,13 +50,30 @@ const config: RTCConfiguration = {
 // Initialize WebRTC connection
 export async function connectToPeer(signalingServerUrl: string, isInitiator: boolean = false): Promise<boolean> {
   try {
+    function normalizeSignalingURL(url: string): string {
+      try {
+        if (!url) return url;
+        const hasProto = /^([a-z]+):\/\//i.test(url);
+        if (!hasProto) {
+          const secure = (typeof window !== 'undefined') ? (window.location.protocol === 'https:') : true;
+          return (secure ? 'wss://' : 'ws://') + url.replace(/^\/+/, '');
+        }
+        const u = new URL(url);
+        if (u.protocol === 'http:') u.protocol = 'ws:';
+        if (u.protocol === 'https:') u.protocol = 'wss:';
+        return u.toString();
+      } catch {
+        return url.replace(/^https:/i,'wss:').replace(/^http:/i,'ws:');
+      }
+    }
+    const wsURL = normalizeSignalingURL(signalingServerUrl);
     // Connect to signaling server
     // The signalingServerUrl should already include the room parameter
     // e.g., "wss://example.com?room=ABC123"
-    socket = new WebSocket(signalingServerUrl);
+    socket = new WebSocket(wsURL);
 
     // Log connection attempt
-    console.log(`Connecting to signaling server: ${signalingServerUrl}`);
+    console.log(`Connecting to signaling server: ${wsURL}`);
 
     // Create RTCPeerConnection
     peerConnection = new RTCPeerConnection(config);
