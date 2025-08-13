@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import GameBoard from './GameBoard';
 import { GameLogger } from '../ui/GameLogger';
 import { DebugPanel } from './DebugPanel';
-import { Category, GameContext } from '../game/types';
+import { Category, GameContext, GameState } from '../game/types';
 import { P2PGameManager } from '../network/gameManager';
 import { connectToPeer, isConnected, sendPlayerInfo, localPlayerId, disconnect } from '../network/webrtc';
 import MatchmakingModal, { MatchmakingSlot } from './MatchmakingModal';
@@ -94,6 +94,13 @@ export const P2PGamePage: React.FC = () => {
       }
     }, 150);
   }, [playerName]);
+
+  // Auto-close matchmaking modal for both peers once game leaves SETUP
+  useEffect(() => {
+    if (game && game.state !== GameState.SETUP) {
+      setIsMMOpen(false);
+    }
+  }, [game?.state]);
 
   // Handle room creation (as host)
   const handleCreateRoom = useCallback(async () => {
@@ -324,10 +331,8 @@ export const P2PGamePage: React.FC = () => {
         onStart={()=>{
           if(!isHost) return; // only host can start the game
           setIsMMOpen(false);
-          // Risiko-Phase: Setze initial direkt in DRAW_PHASE, dann CATEGORY_SELECTION_BOTH
-          setTimeout(()=>{
-            setGame(prev=> prev ? { ...prev, state: 1 as any } : prev);
-          }, 50);
+          // Host triggers start via manager so guest receives synced state
+          try { gameManager?.startGame(); } catch {}
           try { window.localStorage.setItem('MB3_MM_STARTED', '1'); } catch {}
         }}
         onClose={()=> setIsMMOpen(false)}

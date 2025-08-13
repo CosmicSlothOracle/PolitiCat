@@ -105,6 +105,31 @@ export class P2PGameManager {
     }
   }
 
+  // Start the game from SETUP to first selection phase (host only)
+  public startGame(): void {
+    if (!this.game) return;
+    if (!this.isInitiator) return; // only host starts the match
+
+    try {
+      const drawGame = drawTopCards(this.game);
+      const selectionGame = {
+        ...drawGame,
+        state: GameState.CATEGORY_SELECTION_BOTH,
+        selectedCategory1: undefined,
+        selectedCategory2: undefined
+      } as GameContext;
+      this.updateGame(selectionGame);
+      if (isConnected()) {
+        GameStateSync.sendGameState(selectionGame);
+      }
+    } catch (error) {
+      console.error("Error starting game:", error);
+      if (this.events.onError) {
+        this.events.onError(`Error starting game: ${error}`);
+      }
+    }
+  }
+
   // Handle a category selection from the local player
   public handleCategorySelect(category: Category): void {
     if (!this.game) return;

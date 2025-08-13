@@ -27,9 +27,10 @@ export class NetworkMessageHandler {
    * Process an incoming network message
    */
   public handleMessage(message: NetworkMessage, currentGame: GameContext | null): void {
-    if (!currentGame && message.type !== MessageType.PLAYER_INFO) {
-      console.log('Ignoring message: No current game and not a player info message');
-      return; // No current game, ignore most messages
+    // Allow PLAYER_INFO and GAME_STATE even if we don't have a local game yet
+    if (!currentGame && message.type !== MessageType.PLAYER_INFO && message.type !== MessageType.GAME_STATE) {
+      console.log('Ignoring message: No current game and not an allowed bootstrap message');
+      return; // No current game, ignore other messages
     }
 
     try {
