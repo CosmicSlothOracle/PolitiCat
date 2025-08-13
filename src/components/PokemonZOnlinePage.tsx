@@ -101,6 +101,15 @@ export const PokemonZOnlinePage: React.FC = () => {
     return () => window.removeEventListener('message', handleIframeMessage);
   }, [handleIframeMessage]);
 
+  // Listen for host start broadcast via localStorage to close modal on guest
+  useEffect(()=>{
+    const onStorage=(e: StorageEvent)=>{ if(e.key==='MB3_MM_STARTED' && e.newValue==='1'){ setIsMMOpen(false); } };
+    window.addEventListener('storage', onStorage);
+    // In case we arrive late and value is already set
+    try{ if(window.localStorage.getItem('MB3_MM_STARTED')==='1'){ setIsMMOpen(false); } }catch{}
+    return ()=> window.removeEventListener('storage', onStorage);
+  }, []);
+
 
 
   // Host: create room
@@ -317,6 +326,8 @@ export const PokemonZOnlinePage: React.FC = () => {
           setIsMMOpen(false);
           const names = slots.slice(0, slotsCount).map(s=>s.name);
           postToIframe({ type: 'POKEMONZ_MATCH_START', payload: { count: slotsCount, names } });
+          // Also notify guest page state to close their modal (no iframe on guest)
+          try { window.localStorage.setItem('MB3_MM_STARTED', '1'); } catch {}
         }}
         onClose={()=> setIsMMOpen(false)}
       />

@@ -328,6 +328,7 @@ export const P2PGamePage: React.FC = () => {
           setTimeout(()=>{
             setGame(prev=> prev ? { ...prev, state: 1 as any } : prev);
           }, 50);
+          try { window.localStorage.setItem('MB3_MM_STARTED', '1'); } catch {}
         }}
         onClose={()=> setIsMMOpen(false)}
       />

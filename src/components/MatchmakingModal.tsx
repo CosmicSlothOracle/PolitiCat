@@ -46,21 +46,20 @@ export const MatchmakingModal: React.FC<MatchmakingModalProps> = ({
         </div>
         <div className="mm-room">Room: <span className="room-code">{roomId || '—'}</span></div>
 
-        <div className="mm-slots-config">
-          <span>Slots: </span>
-          {allowedCounts.map(n => (
-            <button
-              key={n}
-              className={`play-button ${n === slotsCount ? '' : ''}`}
-              onClick={() => { if(isHost) onChangeSlotsCount(n); }}
-              disabled={!isHost}
-              aria-disabled={!isHost}
-              title={isHost ? 'Change player slots' : 'Only the host can change slots'}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
+        {isHost && (
+          <div className="mm-slots-config">
+            <span>Slots: </span>
+            {allowedCounts.map(n => (
+              <button
+                key={n}
+                className={`play-button ${n === slotsCount ? '' : ''}`}
+                onClick={() => onChangeSlotsCount(n)}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="mm-slots">
           {Array.from({ length: slotsCount }).map((_, idx) => {
