@@ -5,6 +5,7 @@ import { InGamePage } from './components/InGamePage';
 import { P2PGamePage } from './components/P2PGamePage';
 import BrandIntro from './components/BrandIntro';
 import BeatEmUpQTE from './components/BeatEmUpQTE';
+import PokemonZOnlinePage from './components/PokemonZOnlinePage';
 
 // Create router with future flags
 const router = createBrowserRouter(
@@ -20,6 +21,22 @@ const router = createBrowserRouter(
     {
       path: "/multiplayer",
       element: <P2PGamePage />
+    },
+    {
+      path: "/pokemonz",
+      element: (
+        <div style={{width:'100%', height:'100vh'}}>
+          <iframe
+            title="PokemonZ"
+            src="/pokemonz.html"
+            style={{border:'none', width:'100%', height:'100%'}}
+          />
+        </div>
+      )
+    },
+    {
+      path: "/pokemonz-online",
+      element: <PokemonZOnlinePage />
     },
     {
       path: "/qte-test",

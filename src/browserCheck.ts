@@ -10,10 +10,9 @@ export const checkBrowserCompatibility = (): boolean => {
     issues.push('Your browser does not support modern selectors');
   }
 
-  // Check for ES6 support
-  try {
-    eval('() => {}');
-  } catch (e) {
+  // Check for ES6 support (avoid eval for CSP friendliness)
+  const es6Supported = (function(){ try { new Function('return () => {}')(); return true; } catch { return false; } })();
+  if (!es6Supported) {
     issues.push('Your browser does not support modern JavaScript (ES6)');
   }
 

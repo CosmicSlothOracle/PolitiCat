@@ -6,14 +6,18 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "jest"
+    "test": "jest",
+    "server": "node server.js"
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-app-polyfill": "^3.0.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.12.1",
-    "react-touch-events": "^3.0.0"
+    "react-touch-events": "^3.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

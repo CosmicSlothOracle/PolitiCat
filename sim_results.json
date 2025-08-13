@@ -1,0 +1,66 @@
+{
+  "baseline": {
+    "seatWins": [
+      3333,
+      3379,
+      3288
+    ],
+    "totalRounds": 54817,
+    "avgRounds": 5.4817,
+    "avgScorePerRound": [
+      160.1047,
+      160.2291,
+      159.9734
+    ],
+    "ansageRate": 10000,
+    "ansageSuccess": 10000
+  },
+  "ansage_no_lead": {
+    "seatWins": [
+      3441,
+      3291,
+      3268
+    ],
+    "totalRounds": 57441,
+    "avgRounds": 5.7441,
+    "avgScorePerRound": [
+      164.8994,
+      163.8895,
+      162.9426
+    ],
+    "ansageRate": 9996,
+    "ansageSuccess": 9995
+  },
+  "danger_mild": {
+    "seatWins": [
+      3373,
+      3341,
+      3286
+    ],
+    "totalRounds": 54761,
+    "avgRounds": 5.4761,
+    "avgScorePerRound": [
+      160.1017,
+      159.5317,
+      159.7203
+    ],
+    "ansageRate": 10000,
+    "ansageSuccess": 9999
+  },
+  "danger_mild_no_lead": {
+    "seatWins": [
+      3369,
+      3339,
+      3292
+    ],
+    "totalRounds": 57434,
+    "avgRounds": 5.7434,
+    "avgScorePerRound": [
+      164.1462,
+      164.1705,
+      163.6793
+    ],
+    "ansageRate": 9998,
+    "ansageSuccess": 9998
+  }
+}

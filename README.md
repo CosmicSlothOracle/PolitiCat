@@ -30,16 +30,23 @@ The game now supports peer-to-peer multiplayer using WebRTC technology:
 
 ### Signaling Server
 
-The P2P functionality requires a simple signaling server for establishing connections:
+The P2P functionality requires a simple signaling server for establishing connections.
+
+Two options are included in the repo:
+
+1. `signaling/index.js` — minimal WS-only server (Render-friendly)
+
+2. `server.js` — Express + WS with health endpoint (Render-friendly)
+
+Run locally (option 2):
 
 ```bash
-# Run the signaling server locally
-cd signaling
-npm install
-node index.js
+npm run server
 ```
 
-The signaling server is deployed to Render.com at `wss://politicat-signaling.onrender.com`.
+Deployment example (Render): set Start Command to `node server.js` and expose env `PORT`.
+
+Default client URL: `wss://politicat-signaling.onrender.com`.
 
 ### Configuring the Signaling Server URL
 
@@ -53,7 +60,7 @@ The game connects to the deployed signaling server by default. To change this:
 
 2. For local development, use:
    ```
-   VITE_SIGNALING_URL=ws://localhost:3000
+    VITE_SIGNALING_URL=ws://localhost:3001?room=DEV
    ```
 
 ## Installation

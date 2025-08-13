@@ -24,17 +24,31 @@ let socket: WebSocket | null = null;
 export let localPlayerId = Math.random().toString(36).substring(2);
 let messageHandlers: ((message: NetworkMessage) => void)[] = [];
 
-// Default STUN servers
-const config = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-    // Add TURN servers here if needed for NAT traversal
-  ]
+// Default ICE servers with optional TURN from env
+const ICE_SERVERS: RTCIceServer[] = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' }
+];
+
+// Optional TURN (configure in environment)
+const TURN_URL = (import.meta as any).env?.VITE_TURN_URL as string | undefined;
+const TURN_USERNAME = (import.meta as any).env?.VITE_TURN_USERNAME as string | undefined;
+const TURN_CREDENTIAL = (import.meta as any).env?.VITE_TURN_CREDENTIAL as string | undefined;
+
+if (TURN_URL && TURN_USERNAME && TURN_CREDENTIAL) {
+  ICE_SERVERS.push({
+    urls: TURN_URL,
+    username: TURN_USERNAME,
+    credential: TURN_CREDENTIAL
+  });
+}
+
+const config: RTCConfiguration = {
+  iceServers: ICE_SERVERS
 };
 
 // Initialize WebRTC connection
-export async function connectToPeer(signalingServerUrl: string): Promise<boolean> {
+export async function connectToPeer(signalingServerUrl: string, isInitiator: boolean = false): Promise<boolean> {
   try {
     // Connect to signaling server
     // The signalingServerUrl should already include the room parameter
@@ -58,9 +72,11 @@ export async function connectToPeer(signalingServerUrl: string): Promise<boolean
       }
     };
 
-    // Create data channel
-    dataChannel = peerConnection.createDataChannel("game");
-    setupDataChannel(dataChannel);
+    // Only the initiator creates the data channel
+    if (isInitiator) {
+      dataChannel = peerConnection.createDataChannel("game");
+      setupDataChannel(dataChannel);
+    }
 
     // Handle incoming data channels
     peerConnection.ondatachannel = (event) => {
@@ -118,7 +134,8 @@ export async function connectToPeer(signalingServerUrl: string): Promise<boolean
 
       socket.onopen = async () => {
         try {
-          if (peerConnection) {
+          // Only initiator starts offer
+          if (peerConnection && isInitiator) {
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
             sendSignalingMessage({

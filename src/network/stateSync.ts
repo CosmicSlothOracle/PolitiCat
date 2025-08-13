@@ -12,12 +12,15 @@ export class GameStateSync {
    * Validate that a state transition is allowed
    */
   public static isValidStateTransition(currentGame: GameContext, receivedGame: GameContext): boolean {
-    // Allow state transition during these phases
+    // Allow state transition during these phases (multiplayer flow)
     const allowableSyncStates = [
-      GameState.SETUP,
       GameState.DRAW_PHASE,
       GameState.CATEGORY_SELECTION,
-      GameState.VALUE_COMPARISON
+      GameState.CATEGORY_SELECTION_BOTH,
+      GameState.VALUE_COMPARISON,
+      GameState.RESOLVE_WINNER,
+      GameState.HANDLE_TIE,
+      GameState.CHECK_END
     ];
 
     // Always allow initial game state
@@ -39,7 +42,13 @@ export class GameStateSync {
 
     // Only copy specific properties we trust
     if (receivedGame.state) result.state = receivedGame.state;
-    if (receivedGame.selectedCategory) result.selectedCategory = receivedGame.selectedCategory;
+    if ((receivedGame as any).selectedCategory !== undefined) {
+      // Legacy single-selection support
+      (result as any).selectedCategory = (receivedGame as any).selectedCategory;
+    }
+    // Multiplayer dual-selection support
+    if (receivedGame.selectedCategory1 !== undefined) result.selectedCategory1 = receivedGame.selectedCategory1;
+    if (receivedGame.selectedCategory2 !== undefined) result.selectedCategory2 = receivedGame.selectedCategory2;
     if (receivedGame.roundWinner) result.roundWinner = receivedGame.roundWinner;
 
     // Copy top cards if they exist

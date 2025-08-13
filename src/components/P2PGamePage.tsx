@@ -63,7 +63,7 @@ export const P2PGamePage: React.FC = () => {
     console.log(`Connecting to signaling server as host: ${signalingUrlWithRoom}`);
 
     try {
-      const success = await connectToPeer(signalingUrlWithRoom);
+      const success = await connectToPeer(signalingUrlWithRoom, true);
 
       if (success) {
         // Initialize game as host once connected
@@ -91,7 +91,7 @@ export const P2PGamePage: React.FC = () => {
     console.log(`Connecting to signaling server as guest: ${signalingUrlWithRoom}`);
 
     try {
-      const success = await connectToPeer(signalingUrlWithRoom);
+      const success = await connectToPeer(signalingUrlWithRoom, false);
 
       if (success) {
         // Send our player info to the host

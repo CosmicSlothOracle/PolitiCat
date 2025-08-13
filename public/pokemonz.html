@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <title>PokemonZ – Singleplayer</title>
+  <!-- Preloads -->
+  <link rel="preload" as="image" href="https://link.storjshare.io/raw/jxgwkm6k4w6qbqumyqm4ulb7zt5a/pokemonzgameassets/9xherz.png" />
+  <link rel="preload" as="image" href="https://link.storjshare.io/raw/jvqqptyhfqhwsnijhxkwzr3erooa/pokemonzgameassets/9xkaro.png" />
+  <link rel="preload" as="image" href="https://link.storjshare.io/raw/jvoeq2u2xyl7qssgbmojhlnxopbq/pokemonzgameassets/9xkreuz.png" />
+  <link rel="preload" as="image" href="https://link.storjshare.io/raw/jxbvhemvtt5ng67pgginrfpwr7ca/pokemonzgameassets/9xpiek.png" />
+  <style>
+    :root{
+      --tileW:487px; --tileH:682px; --sheetW:1462px; --sheetH:2048px;
+      --scale:.34; --mini:.18; /* via Slider */
+      /* Pixel-art theme to match landing */
+      --bg:#001f3f; --bg2:#000a14; --panel:rgba(0,31,63,0.92); --line:#00ffff; --fg:#ffffff; --muted:#cccccc; --gold:#ffd700; --ok:#00ffff; --warn:#ffcf66; --err:#ff6b6b;
+      --p0:#00ffff; --p1:#4aa3ff; --p2:#ffb84d; --p3:#c68cff;
+      --ease:cubic-bezier(.16,1,.3,1); --ease2:cubic-bezier(.22,.61,.36,1);
+      --card-back: url("https://link.storjshare.io/raw/jwov33z2vdb7pnmfvl775ilx6qhq/pokemonzgameassets/backside.png");
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%}
+    body{background:linear-gradient(to bottom, var(--bg), var(--bg2));color:var(--fg);font:14px/1.5 'Inter', system-ui, -apple-system, Segoe UI, Roboto; overflow-x:hidden}
+    .pixel-title{font-family:'Press Start 2P', monospace}
+    .wrap{max-width:1280px;margin:18px auto;padding:0 14px}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+    /* Retro Scanlines */
+    .scanline-overlay{content:"";position:fixed;inset:0;background-image:repeating-linear-gradient(to bottom, rgba(255,255,255,0.04), rgba(255,255,255,0.04) 1px, transparent 1px, transparent 2px); pointer-events:none; z-index:100}
+
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo.pixel-title{font-weight:800;font-size:18px;color:#00ffff;text-shadow:0 0 6px #00ffff}
+    .subtitle{color:var(--muted);font-size:12px}
+
+    .btn{background:#121212;border:2px solid var(--line);color:#00ffff;padding:10px 14px;border-radius:4px;cursor:pointer;transition:.2s var(--ease);box-shadow:0 0 10px rgba(0,255,255,.3)}
+    .btn:hover{background:#00ffff;color:#121212;transform:translateY(-2px);box-shadow:0 0 15px rgba(0,255,255,.6)}
+    .btn.primary{background:#121212;border-color:#00ffff;color:#00ffff}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:4px;background:rgba(0,31,63,0.7);border:2px solid var(--line);font-size:10px;color:#00ffff}
+    .panel{background:linear-gradient(180deg,rgba(0,31,63,.92),rgba(0,10,20,.94));border:2px solid var(--line);border-radius:10px;padding:12px;box-shadow:0 0 20px rgba(0,255,255,0.3)}
+    .panel.hidden{display:none}
+
+    .layout{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}
+    .hud{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .tag{background:rgba(0,255,255,0.08);border:2px solid var(--line);border-radius:6px;padding:4px 8px;font-size:10px;display:inline-block;color:#00ffff}
+
+    .board{min-height:480px; position:relative}
+    .row{margin-top:8px}
+
+    .trick{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin:10px 0}
+    .slot{display:flex;flex-direction:column;align-items:center;gap:8px}
+    .slot .who{font-size:12px;color:var(--muted)}
+    .pCard{position:relative;width:calc(var(--tileW)*var(--scale));height:calc(var(--tileH)*var(--scale));border-radius:8px;border:2px solid var(--line);background:#000a14;overflow:hidden;opacity:.98;transition:transform .18s var(--ease2),outline-color .12s ease,filter .12s ease,box-shadow .18s var(--ease2)}
+    .pCard.legal{outline:2px dashed var(--ok);cursor:pointer;box-shadow:0 0 12px rgba(0,255,255,.3)}
+    .pCard.locked{opacity:.5;filter:grayscale(40%)}
+    .you{border-color:var(--ok)}
+    .cardLabel{position:absolute;right:6px;bottom:6px;background:rgba(0,12,24,.8);border:2px solid var(--line);padding:4px 6px;border-radius:6px;font-size:12px;color:#cfe3ff;text-align:right}
+    .hand{display:flex;flex-wrap:nowrap;gap:10px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:6px}
+    .hand .pCard:not(.legal){opacity:.6;filter:saturate(.8)}
+    .handItem{ display:flex; flex-direction:column; align-items:center }
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+    .shake{animation:shake .22s}
+
+    .rightcol .section{margin-bottom:12px}
+
+    /* Scoreboard */
+    #scoreWrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+    .scCard{background:rgba(0,0,0,0.6);border:2px solid var(--line);border-radius:8px;padding:10px;position:relative;box-shadow:0 0 12px rgba(0,255,255,.25)}
+    .scHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .scName{font-weight:700}
+    .scPill{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 6px;color:var(--muted)}
+    .scBar{height:8px;background:#000c18;border:2px solid var(--line);border-radius:6px;overflow:hidden}
+    .scBar>i{display:block;height:100%;background:linear-gradient(90deg,#00ffff,#4aa3ff);width:0%}
+    .scMeta{display:flex;gap:8px;margin-top:6px}
+    .scMeta .m{font-size:12px;color:var(--muted)}
+    .leadBadge{position:absolute;top:8px;right:8px;border:1px solid #39507a;background:#1a2236;border-radius:999px;padding:2px 6px;font-size:12px}
+
+    .log{font:12px/1.45 ui-monospace,Consolas,Menlo,monospace;background:#0b0f18;border:1px solid var(--line);border-radius:12px;padding:8px;white-space:pre-wrap;max-height:260px;overflow:auto}
+
+    .banner{display:none;align-items:center;justify-content:space-between;gap:10px;padding:10px;border-radius:12px;border:1px dashed var(--warn);background:#231f12;color:#ffe3a3}
+    .banner.show{display:flex}
+
+    .pc0{--col:var(--p0)} .pc1{--col:var(--p1)} .pc2{--col:var(--p2)} .pc3{--col:var(--p3)}
+    .pcRow{border-left:4px solid var(--col);padding-left:6px;border-radius:6px}
+    .slot.pcRow{padding-left:0;border-left:none}
+    .slot .frame{border:2px solid var(--col);border-radius:14px}
+
+    .winPulse{box-shadow:0 0 0 2px var(--ok) inset,0 0 24px rgba(0,255,255,.7)}
+    .evalGlow{box-shadow:0 0 0 2px var(--gold) inset,0 0 36px rgba(255,215,0,.7)}
+
+    /* Talon / Trumpf Mini */
+    .talon{display:flex;align-items:center;gap:22px;justify-content:flex-start;flex-wrap:wrap}
+    .stack{position:relative;width:calc(var(--tileW)*var(--mini));height:calc(var(--tileH)*var(--mini))}
+    .stack .miniCard{position:absolute;inset:0;border-radius:6px;border:2px solid var(--line);overflow:hidden;background:#000a14;background-size:cover;background-position:center}
+    .stack .under{transform:translate(6px,6px);opacity:.9;background-image:var(--card-back);background-size:cover;background-position:center}
+    .stack .gold{border:2px solid var(--gold);box-shadow:0 0 0 2px rgba(212,175,55,.25)}
+    .stack .silver{border:2px solid #9aa4b2;box-shadow:0 0 0 2px rgba(154,164,178,.22)}
+    .stack .reserveTop{background-image:var(--card-back);background-size:cover;background-position:center}
+    .talonInfo{display:flex;gap:10px;align-items:center}
+
+    /* Layout fix: ensure talon area reserves visual scale height and avoids overlap */
+    #topTrump{ min-height: calc(var(--tileH) * var(--mini) * 2.2); }
+    .talon{ align-items:flex-start; }
+    .talon .stack.talonBig{ margin-bottom: calc(var(--tileH) * var(--mini) * 0.35); }
+
+    @keyframes dropIn{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+    .animIn{animation:dropIn .22s var(--ease)}
+
+    /* Tooltip */
+    .ctip{position:fixed;z-index:9999;background:#000c18;color:#cfe3ff;border:2px solid var(--line);border-radius:6px;padding:8px 10px;font-size:12px;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .12s ease,transform .12s ease;box-shadow:0 14px 30px rgba(0,0,0,.5);max-width:min(360px,80vw);white-space:normal}
+    .ctip.show{opacity:1;transform:translateY(0)}
+    /* Phase Stepper */
+    .phase-stepper{display:flex;gap:10px;align-items:center;margin:6px 0}
+    .phase-node{display:flex;align-items:center;gap:6px;padding:6px 10px;border:2px solid var(--line);border-radius:999px;background:rgba(0,255,255,0.06);color:#00ffff;font-weight:600}
+    .phase-node.active{background:#00ffff;color:#121212;box-shadow:0 0 12px rgba(0,255,255,.5)}
+    .phase-sep{width:24px;height:2px;background:var(--line);opacity:.7}
+
+    /* State bar for lead/trumpf (reduced info) */
+    #stateBar .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:2px solid var(--line);border-radius:8px;background:rgba(0,255,255,0.06);margin-right:8px;color:#cfe3ff}
+
+    /* Hand meta */
+    #handMeta{color:#cfe3ff;margin-top:4px;font-size:12px}
+
+    /* Emote toast */
+    #emoteToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-size:34px;pointer-events:none;z-index:1200;opacity:0;transition:opacity .2s ease, transform .2s ease}
+    #emoteToast.show{opacity:1;transform:translate(-50%, -6px)}
+
+    /* Raise prompt */
+    #raisePrompt{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:1150}
+    #raisePrompt.show{display:flex}
+    #raisePrompt .box{background:#0f1420;border:2px solid var(--line);box-shadow:0 14px 40px rgba(0,255,255,.25);border-radius:12px;padding:16px;min-width:280px}
+
+    /* Phase focus pulse */
+    .phaseFocus{ box-shadow:0 0 0 2px var(--ok) inset, 0 0 18px rgba(0,255,255,.6) !important; animation: pf 1.2s ease-in-out infinite; }
+    @keyframes pf{ 0%{ box-shadow:0 0 0 2px var(--ok) inset, 0 0 8px rgba(0,255,255,.35) } 100%{ box-shadow:0 0 0 2px var(--ok) inset, 0 0 22px rgba(0,255,255,.85) } }
+
+    /* Explicit green outline pulse for actionable containers */
+    .outlinePulse{ box-shadow:0 0 0 2px #00ff66 inset, 0 0 18px rgba(0,255,102,.55) !important; animation: pf 1.2s ease-in-out infinite; }
+    /* Button pulse for available actions */
+    @keyframes btnPulse{ 0%{ box-shadow:0 0 0 0 rgba(0,255,102,.45) } 70%{ box-shadow:0 0 0 10px rgba(0,255,102,0) } 100%{ box-shadow:0 0 0 0 rgba(0,255,102,0) } }
+    .pulse{ animation: btnPulse 1.2s ease-out infinite; border-color:#00ff66 !important }
+
+    /* Bigger talon stacks */
+    .stack.talonBig{ transform:scale(1.35); transform-origin: top left; margin-right: calc((1.35 - 1) * var(--tileW) * var(--mini) + 18px); }
+    .talonActions{ display:flex; gap:8px; align-items:center; margin-bottom:6px }
+    .ctip.pop{border-color:var(--gold);box-shadow:0 10px 40px rgba(212,175,55,.25),0 0 0 1px rgba(212,175,55,.1) inset}
+
+     /* Toast (non-blocking notifications) */
+     .toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%, 8px);background:#12192a;color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:8px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:1300;opacity:0;transition:opacity .18s var(--ease), transform .18s var(--ease)}
+     .toast.show{opacity:1;transform:translate(-50%, 0)}
+
+     /* Score popup for rewards */
+     @keyframes scorePop{0%{transform:translateY(6px);opacity:0}40%{transform:translateY(-6px);opacity:1}100%{transform:translateY(-14px);opacity:0}}
+     .scorePop{position:absolute;right:8px;top:8px;background:#0f1420;border:1px solid var(--ok);color:var(--ok);border-radius:999px;padding:2px 8px;font-size:12px;animation:scorePop 1s ease forwards;pointer-events:none}
+
+    .suit{font-weight:700}
+    .s-hearts,.s-diamonds{color:#ff6b6b}
+    .s-spades,.s-clubs{color:#000000}
+    .badge-suit{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:#1e2433}
+    #trumpPreviewBadge{ margin-left:6px; opacity:.9 }
+    .inlineConfirm{display:flex;gap:8px;align-items:center; background:#12192a; border:1px solid var(--line); border-radius:10px; padding:6px 8px}
+    /* Rank color coding */
+    .rank{font-weight:700}
+    .rank-7{ color:#a7b0c0 }
+    .rank-8{ color:#b39ddb }
+    .rank-9{ color:#81d4fa }
+    .rank-10{ color:#64ffda }
+    .rank-J{ color:#ffd54f }
+    .rank-Q{ color:#f48fb1 }
+    .rank-K{ color:#90caf9 }
+    .rank-A{ color:#ff8a80 }
+    /* Compact legend layout */
+    .legend-grid{ display:grid; gap:6px }
+    .legend-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(72px,1fr)); gap:6px }
+    .legend-rank-list .legend-row{ display:flex; align-items:center; justify-content:space-between; padding:2px 0 }
+    .legend-points{ font-weight:700; color:#cfe3ff; font-size:11px }
+    .chip-mini{ display:inline-flex; align-items:center; justify-content:center; padding:1px 5px; border:1px solid var(--line); border-radius:8px; background:rgba(0,255,255,0.06); font-size:11px }
+    .legend-info{ border:1px solid var(--line); background:#121827; border-radius:8px; padding:2px 8px; font-weight:700; width:max-content }
+    @media (max-width: 900px){ .legend-row{ grid-template-columns:repeat(auto-fit,minmax(56px,1fr)) } }
+
+    /* Hilfeoverlay */
+    #helpOverlay{position:fixed;inset:0;display:none;align-items:stretch;z-index:1000}
+    #helpOverlay.show{display:flex}
+    .help-bg{position:absolute;inset:0;background:rgba(10,12,16,.76);backdrop-filter:blur(3px)}
+    .help-panel{position:relative;margin-left:auto;width:min(420px,90vw);background:#0f1420;border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(0,0,0,.35);padding:16px;overflow:auto}
+    .help-item{padding:8px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:#12192a}
+    .help-item small{display:block;color:var(--muted);margin-top:4px}
+
+    /* Tutorial Coach */
+    #coach{position:fixed;z-index:1102;max-width:min(420px,92vw);background:#0f1420;border:2px solid var(--line);box-shadow:0 14px 40px rgba(0,255,255,.25);border-radius:14px;padding:12px;display:none}
+    #coach.show{display:block}
+    #coach .t-actions{display:flex;gap:8px;margin-top:10px}
+    #coach .t-progress{height:8px;background:#000c18;border:2px solid var(--line);border-radius:999px;overflow:hidden;margin-top:6px}
+    #coach .t-progress>i{display:block;height:100%;background:linear-gradient(90deg,#00ffff,#4aa3ff);width:0%}
+
+    /* Coach mask + mobile sheet */
+    #coachMask{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1100;display:none}
+    #coachMask.show{display:block}
+    @media (max-width: 720px){
+      #coach{left:50% !important; transform:translateX(-50%); bottom:10px; top:auto !important; max-width:96vw}
+      #btnPrephaseDone_inline{ position: sticky; bottom: 8px; align-self: flex-end }
+      #preControls{ padding-bottom: 12px }
+    }
+
+    /* Trick-Controls */
+    #trickControls{display:flex;justify-content:center;gap:10px;margin-top:6px}
+
+    /* Settings */
+    details#settings{margin-bottom:10px}
+    details#settings summary{list-style:none;cursor:pointer;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#121827;display:inline-flex;gap:8px;align-items:center}
+    details#settings[open] summary{background:#101624}
+    .setRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+    /* Pre‑Flow Meter */
+    #preMeter{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:#1b2131;font-size:12px;opacity:.7}
+    .chip.current{border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,175,55,.18)}
+    .chip.done{opacity:1;filter:saturate(1.1)}
+    .chip .mark{width:8px;height:8px;border-radius:999px;background:var(--col)}
+
+     /* Mini button */
+     .btn.mini{ padding:4px 6px; font-size:12px; border-width:1px }
+     .legend-demo{ margin-top:8px }
+     .legend-demo .demo-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
+     .emote-bubble{ position:absolute; top:-6px; right:-6px; font-size:28px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); opacity:0; transform: translateY(6px); transition: opacity .18s var(--ease), transform .18s var(--ease) }
+     .emote-bubble.show{ opacity:1; transform: translateY(0) }
+
+     /* Trump corner (big icon) */
+     #trumpCorner{ position:absolute; top:8px; right:10px; z-index:3; font-size:4em; line-height:1; opacity:.95; pointer-events:none; text-shadow:0 2px 12px rgba(0,0,0,.35) }
+
+     /* Win probability badge under hand cards */
+     .winProb{ display:flex; align-items:center; justify-content:center; margin-top:4px; padding:2px 6px; border-radius:8px; border:1px solid var(--line); font-size:12px; color:#cfe3ff; background:#142333 }
+  </style>
+</head>
+<body>
+  <div class="scanline-overlay"></div>
+  <div class="wrap">
+    <header>
+      <div class="brand"><div class="logo">PokemonZ</div><div class="subtitle">Live slow, play whenever.</div></div>
+      <div class="hud">
+        <button id="btnHelp" class="btn" data-tip="Anleitung ein-/ausblenden">Hilfe</button>
+        <button id="btnSettings" class="btn" data-tip="Einstellungen öffnen">⚙️</button>
+        <button id="btnTutorial" class="btn" data-tip="Geführtes Tutorial starten/fortsetzen">Tutorial</button>
+        <button id="btnNewRound" class="btn primary" data-tip="Neue Runde: mischen, austeilen, Top/Trumpf aufdecken">Neue Runde</button>
+        <button id="btnSelfTest" class="btn" data-tip="Vorphasen‑Selbsttest ausführen">Test</button>
+        <button id="btnPrephaseDone" class="btn primary" style="border-width:3px; box-shadow:0 0 18px rgba(0,255,255,0.7)" data-tip="Vorphase: Deine Entscheidung speichern & weiter" disabled>Weiter (Vorphase)</button>
+        <div id="emotes" class="hud" style="gap:6px; margin-left:6px">
+          <button class="btn" data-emote="🦄" title="Emote">🦄</button>
+          <button class="btn" data-emote="👾" title="Emote">👾</button>
+          <button class="btn" data-emote="🌀" title="Emote">🌀</button>
+          <button class="btn" data-emote="🍄" title="Emote">🍄</button>
+          <button class="btn" data-emote="🤡" title="Emote">🤡</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Settings Overlay -->
+    <div id="settingsOverlay" aria-hidden="true" style="display:none">
+      <div class="help-bg"></div>
+      <div class="help-panel">
+        <div class="hud" style="justify-content:space-between; align-items:center; margin-bottom:6px">
+          <div class="pixel-title">Einstellungen</div>
+          <button id="btnSettingsClose" class="btn">Schließen</button>
+        </div>
+        <div class="setRow">
+          <span class="pill">Spieler:
+            <select id="uiPlayers" title="Anzahl Spieler" aria-label="Spieleranzahl">
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
+            </select>
+          </span>
+          <span class="pill">Ziel:
+            <input id="uiTarget" type="number" value="200" min="40" step="10" style="width:80px" title="Zielpunkte" aria-label="Zielpunkte" />
+          </span>
+          <span class="pill">Kartengröße:
+            <input id="uiScale" type="range" min="60" max="160" step="5" value="100" style="width:160px" data-tip="Skaliert die Karten. 100% = Standardgröße." aria-label="Kartengröße" aria-describedby="uiScaleLabel" />
+            <span id="uiScaleLabel">100%</span>
+          </span>
+          <span class="pill">Lautstärke:
+            <input id="uiVolume" type="range" min="0" max="100" step="5" value="60" style="width:160px" title="Lautstärke" aria-label="Lautstärke" aria-describedby="uiVolumeLabel" />
+            <span id="uiVolumeLabel">60%</span>
+          </span>
+          <span class="pill"><label><input id="uiMute" type="checkbox" /> Lautlos</label></span>
+          <span class="pill">
+            <button id="btnExport" class="btn" data-tip="Einstellungen & Mapping als JSON kopieren">Export</button>
+            <button id="btnImportAll" class="btn" data-tip="Einstellungen & Mapping aus JSON importieren">Import</button>
+          </span>
+        </div>
+        <div class="panel" style="margin-top:10px">
+          <div class="hud" style="margin-top:8px">
+            <span class="pill" id="mapStatus">Mapping: ‑</span>
+            <button id="btnImportMap" class="btn" data-tip="Mapping JSON importieren und speichern">Mapping importieren</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vorphase Controls -->
+    <div class="panel hidden" id="preControls" data-help="prephase">
+      <div class="hud" style="flex-wrap:wrap; gap:10px; align-items:center">
+        <span id="preStepPill" class="pill" style="display:none">Modus: <b id="preStepLabel"></b></span>
+        <button id="btnRaise" class="btn" data-tip="Risiko-Modus aktivieren: zählt für den Runden-Multiplikator">Risiko‑Modus</button>
+        <button id="btnRaiseNo" class="btn" data-tip="Sicherer Modus: keine Risiko-Beteiligung">Sicherer Modus</button>
+        <span id="riskDesc" class="subtitle" style="margin-left:auto; max-width:520px">Traust du dich, aufs Ganze zu gehen? Wenn du den Multiplikator setzt und gewinnst, bekommst du doppelte oder sogar dreifache Punkte. Aber Vorsicht: Verlierst du, dann gehen alle Punkte dieser Runde in den Keller – und bei Dreifach sogar doppelt so tief.</span>
+        <button id="btnSwapTop" class="btn" data-tip="Trumpfkarte tauschen: Tausche die aufgedeckte Trumpfkarte (Topkarte) mit einer Handkarte (1× in der Vorphase).">Trumpfkarte tauschen</button>
+        <button id="btnOpferJoker" class="btn" data-tip="Joker ablegen: Entferne einen Joker aus deiner Hand und erhalte +7 Bonuspunkte und 1 virtuellen Stich.">Joker ablegen +7</button>
+        <button id="btnPrephaseDone_inline" class="btn primary" style="border-width:3px; box-shadow:0 0 18px rgba(0,255,255,0.7)" data-tip="Vorphase: Deine Entscheidung speichern & weiter" disabled>Weiter (Bereit 0/0)</button>
+      </div>
+      <div id="preMeter"></div>
+      <div class="subtitle" id="preHint"></div>
+    </div>
+
+    <div class="layout">
+      <div class="panel board" data-help="board">
+        <div id="trumpCorner" aria-hidden="true"></div>
+        <div id="roundInfo" class="row" data-help="roundinfo"></div>
+        <div id="phaseBar" class="row"></div>
+        <div id="stateBar" class="row"></div>
+        <div class="row" id="topTrump" data-help="talon"></div>
+        <div class="row" id="statusBar"></div>
+        <div class="row" id="preDiscards" data-help="prediscards"></div>
+
+        <div class="row" data-help="trick">
+          <div class="trick" id="trickZone"></div>
+          <div id="trickControls"></div>
+        </div>
+
+        <div class="row" data-help="hand">
+          <div class="hud" id="handTools" style="justify-content:flex-end; align-items:center; margin-bottom:4px">
+            <button id="btnHandHelp" class="btn mini" data-tip="Zeigt die geschätzte Gewinnwahrscheinlichkeit unter jeder Handkarte">Help</button>
+          </div>
+          <div id="yourHand" class="hand"></div>
+          <div id="handMeta"></div>
+        </div>
+      </div>
+
+      <div class="panel rightcol" data-help="sidebar">
+        <div class="section" data-help="score">
+          <div class="small">Punktestand</div>
+          <div id="scoreWrap"></div>
+        </div>
+        <div class="section" id="cardLegend" data-help="legend">
+          <div class="small">Legende</div>
+          <div class="panel" style="margin-top:6px">
+            <div id="legendCompact" class="legend-grid">
+              <!-- Reihenfolge oben nach Wunsch: Joker, Bube, A, 10 … 7; rechts jeweils Punkte -->
+              <div class="legend-rank-list">
+                <div class="legend-row"><span class="chip-mini"><span class="rank rank-X">Joker</span></span><span class="legend-points">0</span></div>
+                <div class="legend-row"><span class="chip-mini"><span class="rank rank-J">Bube</span></span><span class="legend-points">2</span></div>
+                <div class="legend-row"><span class="chip-mini"><span class="rank rank-A">Ass</span></span><span class="legend-points">11</span></div>
+                <div class="legend-row"><span class="chip-mini"><span class="rank rank-10">10</span></span><span class="legend-points">10</span></div>
+                <div class="legend-row"><span class="chip-mini"><span class="rank rank-K">König</span></span><span class="legend-points">4</span></div>
+                <div class="legend-row"><span class="chip-mini"><span class="rank rank-Q">Dame</span></span><span class="legend-points">3</span></div>
+                <div class="legend-row"><span class="chip-mini"><span class="rank rank-9">9</span></span><span class="legend-points">0</span></div>
+                <div class="legend-row"><span class="chip-mini"><span class="rank rank-8">8</span></span><span class="legend-points">0</span></div>
+                <div class="legend-row"><span class="chip-mini"><span class="rank rank-7">7</span></span><span class="legend-points">0</span></div>
+              </div>
+              <!-- Kompakte Info statt Suit-Reihe -->
+              <button class="legend-info" data-tip="Rangfolge (hoch → niedrig): Joker > Bube > (Trumpf) > angespielte Farbe">ℹ︎</button>
+              <div class="legend-demo" style="display:none">
+                <div class="demo-row">
+                  <span id="legendDemoResult" class="pill" style="display:none"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="section" data-help="log">
+          <div class="small">Rundenlog</div>
+          <div id="playLog" class="log"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="wrap" style="color:var(--muted);display:flex;gap:8px;align-items:center;justify-content:space-between">
+    <span>PokemonZ · „Live slow, play whenever.“</span>
+    <span class="pill">v3.4 UI</span>
+  </footer>
+
+  <div id="ariaLive" aria-live="polite" class="sr-only"></div>
+  <div id="emoteToast"></div>
+  <div id="raisePrompt" aria-hidden="true">
+    <div class="help-bg"></div>
+    <div class="box">
+      <div class="pixel-title" style="margin-bottom:8px">Einsatz erhöhen?</div>
+      <div class="hud" style="gap:8px;justify-content:flex-end">
+        <button id="btnRaiseDecline" class="btn">Passen</button>
+        <button id="btnRaiseAccept" class="btn primary">Annehmen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hilfe Overlay -->
+  <div id="helpOverlay" aria-hidden="true">
+    <div class="help-bg"></div>
+    <div class="help-panel">
+      <button class="btn" id="btnHelpClose" data-tip="Hilfe schließen">Schließen</button>
+      <h2>Kurzanleitung</h2>
+      <div class="help-item" data-target="[data-help=talon]"><b>Talon & Trumpf</b><small>Oberste Karte (Gold) bestimmt die Trumpffarbe. Gegenüber liegt eine <b>Reservekarte</b> (Silber). In der Vorphase: Joker ↔ Reserve tauschen → Bonus als virtueller Stich. Buben sind immer Trumpf, Joker sticht alles.</small></div>
+      <div class="help-item" data-target="#preControls"><b>Vorphase (Reihum)</b><small>Reihenfolge siehe <b>Pre‑Flow‑Meter</b>. Pro Spieler: <i>Ansage?</i> · <i>Joker tauschen?</i> · <i>Topkarte tauschen?</i>. Danach startet automatisch die Stichphase.</small></div>
+      <div class="help-item" data-target="[data-help=trick]"><b>Stichbereich</b><small>Hier landen die gespielten Karten. Gewinner wird hervorgehoben – per Hover mit Begründung.</small></div>
+      <div class="help-item" data-target="[data-help=hand]"><b>Deine Hand</b><small>Klicke eine grün markierte (legale) Karte. Farbzwang gilt; Trumpf sticht (Joker > Bube > Trumpf).</small></div>
+      <div class="help-item" data-target="[data-help=score]"><b>Score & Status</b><small>Gesamtpunkte, Gefahrenzone, Ansage, Stiche. Nach 5 Stichen: Rundenwertung.</small></div>
+      <div class="help-item" data-target="[data-help=log]"><b>Log</b><small>Alle Ereignisse: Züge, Tausch, Joker‑Tausch (Reserve), Stichgewinner, Rundenpunkte.</small></div>
+      <div class="hud" style="margin-top:10px"><button class="btn" id="btnHelpDemo" data-tip="Kurzer Ablauf anzeigen">Kurzer Ablauf</button></div>
+      <div class="subtitle" style="margin-top:8px">Tipp: Elemente hovern → zugehörige UI wird markiert.</div>
+    </div>
+  </div>
+
+  <!-- Tutorial Coach -->
+  <div id="coach" role="dialog" aria-live="polite" aria-label="Tutorial"></div>
+  <div id="coachMask" aria-hidden="true"></div>
+
+
+<script>
+'use strict';
+/* ===== Sprites & Mapping ===== */
+const ASSET_URLS={
+  hearts:"https://link.storjshare.io/raw/jxgwkm6k4w6qbqumyqm4ulb7zt5a/pokemonzgameassets/9xherz.png",
+  diamonds:"https://link.storjshare.io/raw/jvqqptyhfqhwsnijhxkwzr3erooa/pokemonzgameassets/9xkaro.png",
+  clubs:"https://link.storjshare.io/raw/jvoeq2u2xyl7qssgbmojhlnxopbq/pokemonzgameassets/9xkreuz.png",
+  spades:"https://link.storjshare.io/raw/jxbvhemvtt5ng67pgginrfpwr7ca/pokemonzgameassets/9xpiek.png"
+};
+const SUITS=["spades","hearts","diamonds","clubs"]; const SUIT_LABEL={spades:"Pik",hearts:"Herz",diamonds:"Karo",clubs:"Kreuz"};
+const TILE_W=487, TILE_H=682, SHEET_W=1462, SHEET_H=2048; const BASE_SCALE=.34, BASE_MINI=.18, SCALE_RATIO=BASE_MINI/BASE_SCALE;
+const RULE_ANSAGE_TRUMP_COUNTS_AS_LEAD = true;
+const PREVIEW_CONFIRM_ENABLED = false; // optional confirm dialog for top swap
+
+/* Mapping (persistiert) */
+const MAP_KEYS=["MB3_SPRITEMAP_V3","MB3_SPRITEMAP_V2"]; let spriteMap=loadSpriteMap();
+function loadSpriteMap(){
+  for(const k of MAP_KEYS){ try{ const raw=localStorage.getItem(k); if(raw) return JSON.parse(raw);}catch(e){} }
+  const def={
+    hearts:   {"K":0,"X":1,"A":2,"10":3,"9":4,"J":5,"Q":6,"7":7,"8":8},
+    diamonds: {"K":0,"Q":1,"7":2,"J":3,"8":4,"A":5,"9":6,"10":7,"X":8},
+    clubs:    {"7":0,"8":1,"9":2,"10":3,"Q":4,"J":5,"K":6,"A":7,"X":8},
+    spades:   {"9":0,"8":1,"Q":2,"K":3,"A":4,"J":5,"X":6,"10":7,"7":8}
+  };
+  try{ localStorage.setItem('MB3_SPRITEMAP_V3', JSON.stringify(def)); }catch(e){}
+  return def;
+}
+function validateComplete(m){ try{ const map=m||spriteMap; return Object.keys(ASSET_URLS).every(function(s){ const r=map[s]||{}; const want=["7","8","9","10","J","Q","K","A","X"]; return want.every(function(k){ return r[k]!==undefined; }); }); }catch(e){ return false; } }
+
+/* Refs */
+const btnHelp=document.getElementById('btnHelp');
+let showWinProbs=false;
+const btnHelpClose=document.getElementById('btnHelpClose');
+const helpOverlay=document.getElementById('helpOverlay');
+const btnHelpDemo=document.getElementById('btnHelpDemo');
+const btnTutorial=document.getElementById('btnTutorial');
+const btnSettings=document.getElementById('btnSettings');
+const settingsOverlay=document.getElementById('settingsOverlay');
+const btnSettingsClose=document.getElementById('btnSettingsClose');
+const btnNewRound=document.getElementById('btnNewRound');
+const btnPrephaseDone=document.getElementById('btnPrephaseDone');
+const btnImportMap=document.getElementById('btnImportMap');
+const mapStatus=document.getElementById('mapStatus');
+const preControls=document.getElementById('preControls');
+const preHint=document.getElementById('preHint');
+const preMeter=document.getElementById('preMeter');
+const preStepPill=document.getElementById('preStepPill');
+const preStepLabel=document.getElementById('preStepLabel');
+const riskDesc=document.getElementById('riskDesc');
+const preStepCancel=document.getElementById('preStepCancel');
+const btnToggleAnsage=document.getElementById('btnToggleAnsage');
+const btnOpferJoker=document.getElementById('btnOpferJoker');
+const btnRaise=document.getElementById('btnRaise');
+const btnRaiseNo=document.getElementById('btnRaiseNo');
+const btnSwapTop=document.getElementById('btnSwapTop');
+const uiPlayers=document.getElementById('uiPlayers');
+const uiTarget=document.getElementById('uiTarget');
+const uiJokerB=null; // removed from UI; fixed bonus applied
+const uiScale=document.getElementById('uiScale');
+const uiScaleLabel=document.getElementById('uiScaleLabel');
+const uiVolume=document.getElementById('uiVolume');
+const uiVolumeLabel=document.getElementById('uiVolumeLabel');
+const uiMute=document.getElementById('uiMute');
+const btnExport=document.getElementById('btnExport');
+const btnImportAll=document.getElementById('btnImportAll');
+const ariaLive=document.getElementById('ariaLive');
+const roundInfo=document.getElementById('roundInfo');
+const topTrumpEl=document.getElementById('topTrump');
+const preDiscardsEl=document.getElementById('preDiscards');
+const trickZone=document.getElementById('trickZone');
+const trickControls=document.getElementById('trickControls');
+const yourHandEl=document.getElementById('yourHand');
+const scoreWrap=document.getElementById('scoreWrap');
+const playLog=document.getElementById('playLog');
+const coach=document.getElementById('coach');
+const btnSelfTest=document.getElementById('btnSelfTest');
+const btnHandHelp=document.getElementById('btnHandHelp');
+
+function updatePreControlsVisibility(){ try{
+  if(!hasGame() || G.phase!=='pre') return;
+  const step= (typeof G.preStepIndex==='number')? G.preStepIndex : 0;
+  // Defaults: hide all
+  preControls.classList.remove('outlinePulse');
+  if(btnRaise){ btnRaise.style.display='none'; }
+  if(btnRaiseNo){ btnRaiseNo.style.display='none'; }
+  if(btnSwapTop){ btnSwapTop.style.display='none'; }
+  if(btnOpferJoker){ btnOpferJoker.style.display='none'; }
+  const inlineBtn=document.getElementById('btnPrephaseDone_inline');
+  if(inlineBtn){ inlineBtn.style.display='none'; }
+  if(btnPrephaseDone){ btnPrephaseDone.style.display='none'; }
+  // Show only relevant controls for current step
+  if(step===0){
+    if(btnRaise) btnRaise.style.display='';
+    if(btnRaiseNo) btnRaiseNo.style.display='';
+    // Pulse available actions
+    if(btnRaise) btnRaise.classList.add('pulse');
+    if(btnRaiseNo) btnRaiseNo.classList.add('pulse');
+    preControls.classList.add('outlinePulse');
+    if(riskDesc){ riskDesc.style.display=''; riskDesc.textContent='Traust du dich, aufs Ganze zu gehen? Wenn du den Multiplikator setzt und gewinnst, bekommst du doppelte oder sogar dreifache Punkte. Aber Vorsicht: Verlierst du, dann gehen alle Punkte dieser Runde in den Keller – und bei Dreifach sogar doppelt so tief.'; }
+  } else if(step===1){
+    if(btnSwapTop) btnSwapTop.style.display='';
+    // Offer explicit Pass for human (one click), swap remains directly usable
+    if(inlineBtn){ inlineBtn.style.display=''; inlineBtn.textContent='Passen'; inlineBtn.disabled=false; }
+    if(btnSwapTop) btnSwapTop.classList.add('pulse');
+    if(inlineBtn) inlineBtn.classList.add('pulse');
+    preControls.classList.add('outlinePulse');
+    if(riskDesc){ riskDesc.style.display=''; riskDesc.textContent='Trumpfkarte tauschen: Lege eine Handkarte ab und decke eine neue Topkarte vom Talon auf. Neue Top bestimmt die Trumpffarbe – Chance auf stärkere Trümpfe.'; }
+  } else if(step===2){
+    if(btnOpferJoker) btnOpferJoker.style.display='';
+    // Also allow explicit Pass for Joker step
+    if(inlineBtn){ inlineBtn.style.display=''; inlineBtn.textContent='Passen'; inlineBtn.disabled=false; }
+    if(btnOpferJoker) btnOpferJoker.classList.add('pulse');
+    if(inlineBtn) inlineBtn.classList.add('pulse');
+    preControls.classList.add('outlinePulse');
+    if(riskDesc){ riskDesc.style.display=''; riskDesc.textContent='Joker ablegen (+7): Tausche deinen Joker gegen sicheren Bonus und einen virtuellen Stich – weniger Explosivität, mehr Verlässlichkeit.'; }
+  }
+  // Also hide talon swap button outside of step 1
+  try{ const talonBtn=document.getElementById('btnSwapTop_Talon'); if(talonBtn){ talonBtn.style.display = (step===1? '' : 'none'); } }catch(_){ }
+}catch(_){ }}
+
+/* Utilities */
+function safeRect(el){ try{ if(el&&typeof el.getBoundingClientRect==='function'){ return el.getBoundingClientRect(); } }catch(e){} return {left:innerWidth*0.5,top:innerHeight*0.5,width:0,height:0}; }
+
+/* Tooltip */
+let tipTimer=null; let tipEl=null;
+function ensureTip(){ if(!tipEl){ tipEl=document.createElement('div'); tipEl.className='ctip'; document.body.appendChild(tipEl);} return tipEl; }
+function hideTip(){ if(tipEl) tipEl.classList.remove('show'); clearTimeout(tipTimer); }
+window.addEventListener('keydown',e=>{ if(e.key==='Escape') hideTip(); });
+function bindTooltips(){
+  const els=document.querySelectorAll('[data-tip]');
+  els.forEach(el=>{
+    if(el.getAttribute('data-tip-bound')==='1') return;
+    el.setAttribute('data-tip-bound','1');
+    el.addEventListener('mouseenter', e=>{
+      const t=el.getAttribute('data-tip'); if(!t) return;
+      const rectNow=safeRect(el);
+      clearTimeout(tipTimer);
+      tipTimer=setTimeout(()=>{
+        const tip=ensureTip(); tip.innerHTML=t;
+        if(el.getAttribute('data-pop')==='1') tip.classList.add('pop'); else tip.classList.remove('pop');
+        tip.style.left=(rectNow.left + rectNow.width/2)+'px';
+        tip.style.top=(rectNow.top - 12)+'px';
+        tip.style.transform='translate(-50%, -8px)';
+        tip.classList.add('show');
+      },280);
+    });
+    el.addEventListener('mouseleave',()=>{ clearTimeout(tipTimer); if(tipEl) tipEl.classList.remove('show'); });
+    el.addEventListener('click',()=>{ clearTimeout(tipTimer); if(tipEl) tipEl.classList.remove('show'); });
+  });
+}
+
+/* Kartenhintergründe */
+function toIdx(v){ const n=(typeof v==='number')? v : parseInt(v,10); return isFinite(n)? n : 0; }
+function tileBgScale(style,url,idx,scale){ if(idx===undefined){ style.backgroundImage='none'; return; } const i=toIdx(idx); const col=i%3, row=Math.floor(i/3); const x=-Math.round(col*TILE_W*scale); const y=-Math.round(row*TILE_H*scale); style.backgroundImage='url('+url+')'; style.backgroundPosition=x+'px '+y+'px'; style.backgroundSize=Math.round(SHEET_W*scale)+'px '+Math.round(SHEET_H*scale)+'px'; style.backgroundRepeat='no-repeat'; }
+function currentScale(){ const v=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale')); return isFinite(v)? v : BASE_SCALE; }
+function currentMini(){ const v=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--mini')); return isFinite(v)? v : BASE_MINI; }
+function setCardStyle(el,suit,rank,mini){ mini=!!mini; if(!el) return; const mapSuit=(spriteMap&&spriteMap[suit])? spriteMap[suit]:{}; const idx=mapSuit[rank]; const sc=mini? currentMini(): currentScale(); tileBgScale(el.style, ASSET_URLS[suit], idx, sc); }
+function setMapStatus(){ const ok=validateComplete(); if(mapStatus){ mapStatus.textContent= ok? 'Mapping: komplett':'Mapping: unvollständig'; mapStatus.style.color= ok? 'var(--ok)':'var(--warn)'; } }
+if(btnImportMap){ btnImportMap.onclick=function(){ const txt=prompt('Mapping JSON einfügen (MB3_SPRITEMAP_V3):'); if(!txt) return; try{ const obj=JSON.parse(txt); localStorage.setItem('MB3_SPRITEMAP_V3', JSON.stringify(obj)); spriteMap=obj; setMapStatus(); renderTopTrump(); renderHands(); renderTrick(); logPlay('Mapping importiert.'); }catch(e){ alert('JSON ungültig: '+e.message); } } }
+
+/* Engine */
+const PVAL={A:11,'10':10,K:4,Q:3,D:3,J:2,'9':0,'8':0,'7':0,X:0};
+const JACK_ORDER=['clubs','spades','hearts','diamonds'];
+const JOKER_ORDER=['clubs','spades','hearts','diamonds'];
+  const RANKS=['7','8','9','10','J','Q','K','A','X'];
+function makeDeck(){ const deck=[]; for(let si=0;si<SUITS.length;si++){ const s=SUITS[si]; const ranks=['7','8','9','10','J','Q','K','A']; for(let ri=0;ri<ranks.length;ri++){ deck.push({suit:s,rank:ranks[ri]}); } deck.push({suit:s,rank:'X'}); } return deck; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function isJack(c){ return c&&c.rank==='J'; }
+function isJoker(c){ return c&&c.rank==='X'; }
+function topcardTrump(top){ return (!top||top.rank==='J')? null : top.suit; }
+
+function computeLeadSuit(trick,trumpSuit,ansFlags){
+  if(!Array.isArray(trick)||trick.length===0) return null;
+  for(let i=0;i<trick.length;i++){
+    const e=trick[i]; if(!e||!e.card) continue;
+    if(isJack(e.card)||isJoker(e.card)) continue;
+    // Only skip Ansager-Trumpf als Lead, wenn die Regel es verlangt
+    // Ansage wird nicht mehr verwendet
+    return e.card.suit;
+  }
+  return null;
+}
+function compareTrick(cards,leader,trumpSuit,ansFlags){
+  ansFlags=[];
+  let leadSuit=null;
+  for(let i=0;i<cards.length;i++){
+    const e=cards[i];
+    if(e&&e.card&&!isJack(e.card)&&!isJoker(e.card)){
+      const isAns=false;
+      leadSuit=e.card.suit; break;
+    }
+  }
+
+  // === Win probability estimation (simplified, combinatorial heuristic)
+  function remainingDeckCounts(){
+    const total={}; SUITS.forEach(s=>{ total[s]={}; RANKS.forEach(r=> total[s][r]=1); });
+    // Remove all cards seen: hands (known self), trick, piles, preDiscards, topHistory, topSwapDiscards, jokerDiscards, top/reserve
+    function consume(c){ try{ if(!c||!c.suit||!c.rank) return; if(total[c.suit]&&total[c.suit][c.rank]>0) total[c.suit][c.rank]--; }catch(_){ } }
+    try{ (G.hands&&G.hands[0]||[]).forEach(consume); }catch(_){ }
+    try{ (G.trick||[]).forEach(e=>consume(e&&e.card)); }catch(_){ }
+    try{ (G.piles||[]).forEach(p=>p.forEach(consume)); }catch(_){ }
+    try{ (G.topHistory||[]).forEach(e=>consume(e&&e.oldTop)); }catch(_){ }
+    try{ (G.topSwapDiscards||[]).forEach(e=>consume(e&&e.card)); }catch(_){ }
+    try{ (G.jokerDiscards||[]).forEach(e=>consume(e&&e.card)); }catch(_){ }
+    try{ consume(G.top); }catch(_){ }
+    // reserve ist unbekannt (verdeckt) -> nicht consumen
+    return total;
+  }
+  function estimateWinProbForCard(card){
+    try{
+      if(!card) return 0;
+      const leadSuit = computeLeadSuit(G.trick,G.trumpSuit,[]);
+      // if not legal, probability is zero
+      const legalNow = legalMoves(G.hands[0], leadSuit, G.trumpSuit, false);
+      if(legalNow.indexOf(card)===-1) return 0;
+      // Simulate current player position
+      const me = (G.leader + G.trick.length) % tour.N;
+      if(me!==0) return 0; // only compute for our turn
+      // Basic heuristic: how many unseen higher cards can beat this card?
+      const counts = remainingDeckCounts();
+      let threats = 0, universe = 0;
+      // Universe: opponents still to play this trick
+      const opponents = (tour.N - (G.trick.length+1));
+      // Count potential beating cards among all suits/ranks obeying rules
+      function canBeat(candidate){
+        if(!candidate) return false; const c=candidate;
+        if(isJoker(c) && !isJoker(card)) return true;
+        if(isJack(c) && !isJoker(card)){
+          if(!isJack(card)) return true;
+          // Jack vs Jack: JACK_ORDER priority
+          return JACK_ORDER.indexOf(c.suit) < JACK_ORDER.indexOf(card.suit);
+        }
+        if(isJoker(card)) return false; // only Joker beats Joker (none)
+        if(isJack(card)){
+          // only higher jack in order beats it
+          if(!isJack(c)) return false;
+          return JACK_ORDER.indexOf(c.suit) < JACK_ORDER.indexOf(card.suit);
+        }
+        const trump = G.trumpSuit;
+        const lead = leadSuit || card.suit;
+        // If opponent has to follow suit
+        if(lead && c.suit===lead){
+          if(trump && card.suit===trump && c.suit===trump){
+            const rankPower = ['7','8','9','10','Q','K','A'];
+            return rankPower.indexOf(c.rank) > rankPower.indexOf(card.rank);
+          }
+          if(card.suit!==trump){
+            const rankPower = ['7','8','9','10','Q','K','A'];
+            return rankPower.indexOf(c.rank) > rankPower.indexOf(card.rank);
+          }
+        }
+        // Trump can beat non-trump
+        if(trump && c.suit===trump && card.suit!==trump) return true;
+        return false;
+      }
+      // Iterate remaining deck counts to accumulate threats
+      SUITS.forEach(s=>{
+        RANKS.forEach(r=>{
+          const n = (counts[s]&&counts[s][r])||0; if(n<=0) return;
+          const c = {suit:s, rank:r};
+          if(canBeat(c)) threats += n;
+          universe += n;
+        });
+      });
+      // Probability this card survives against opponents: assume independence
+      const perOpponentThreat = universe>0? (threats/universe) : 0;
+      const survive = Math.pow(1 - perOpponentThreat, Math.max(0, opponents));
+      return Math.max(0, Math.min(1, survive));
+    }catch(_){ return 0; }
+  }
+  function explainWinProb(card, prob){
+    try{
+      const leadSuit = computeLeadSuit(G.trick,G.trumpSuit,[]);
+      const opponents = (tour.N - (G.trick.length+1));
+      return 'P(Win) ≈ (1 − p_b)^opponents\n'+
+             'p_b: Anteil unbekannter Karten, die diese Karte schlagen können.\n'+
+             'lead='+String(leadSuit||'-')+', trump='+String(G.trumpSuit||'-')+', opponents='+opponents+'\n'+
+             'Heuristik: Joker>J>Trumpf>Farbe.';
+    }catch(_){ return 'Heuristische Abschätzung basierend auf unbekannten Karten.'; }
+  }
+  function rankPower(r){ switch(r){ case 'A':return 80; case '10':return 70; case 'K':return 60; case 'Q': case 'D':return 50; case '9':return 40; case '8':return 30; case '7':return 20; default:return 10; } }
+  function power(c,pid){ if(!c) return -9999; const isAns=!!ansFlags[pid];
+    if(isJoker(c)) return 1000+(3-JOKER_ORDER.indexOf(c.suit));
+    if(isJack(c))  return  900+(3-JACK_ORDER.indexOf(c.suit));
+    if(trumpSuit&&c.suit===trumpSuit&&!isAns) return 600+rankPower(c.rank);
+    if(leadSuit&&c.suit===leadSuit) return 300+rankPower(c.rank);
+    return rankPower(c.rank);
+  }
+  let best=-1e9, wi=0; for(let i=0;i<cards.length;i++){ const pc=cards[i]; const pwr=power(pc?pc.card:null, pc?pc.player:null); if(pwr>best){ best=pwr; wi=i; } }
+  return {winner:cards[wi].player,leadSuit};
+}
+function canFollow(hand,leadSuit){
+  if(!leadSuit||!Array.isArray(hand)||hand.length===0) return false;
+  for(let i=0;i<hand.length;i++){ const c=hand[i]; if(c&&!isJack(c)&&!isJoker(c)&&c.suit===leadSuit) return true; }
+  return false;
+}
+function legalMoves(hand,leadSuit,trumpSuit,ansage){
+  if(!Array.isArray(hand)) return [];
+  if(!leadSuit){ return hand.filter(Boolean); }
+  const suitedNormals=hand.filter(c=>c&&!isJack(c)&&!isJoker(c)&&c.suit===leadSuit);
+  if(suitedNormals.length>0) return suitedNormals;
+  return hand.filter(Boolean);
+}
+
+/* ==== KI Heuristiken (ohne Ansage) ==== */
+function aiChooseTopSwapCard(hand,top){
+  if(!top||top.rank==='J') return null; // kein sinnvoller Top‑Trumpf
+  // niedrigste Nicht‑Trumpf‑Karte (ohne J/X)
+  let cand=null, val=1e9;
+  hand.forEach(c=>{
+    if(!c||isJack(c)||isJoker(c)) return;
+    if(c.suit===top.suit) return; // behalte Trumpffarbe
+    const p=(PVAL[c.rank]||0);
+    if(p<val){ val=p; cand=c; }
+  });
+  return cand;
+}
+function aiWantsJokerSwap(hand){ return hand.some(isJoker); }
+
+/* Game State */
+let tour={N:3,target:200,jokerBonus:15,totals:[],danger:[],round:0}; let G=null; let swapArmed=false;
+function hasGame(){ return !!(G&&G.hands&&Array.isArray(G.hands)); }
+function logPlay(s){ if(playLog) playLog.textContent=(s+"\n"+(playLog.textContent||'')).slice(0,12000); }
+
+/* Auswertungstexte */
+function suitIcon(s){ return s==='hearts'?"\u2665": s==='diamonds'?"\u2666": s==='spades'?"\u2660":"\u2663"; }
+function suitSpan(s){ if(!s) return '<span>(keine)</span>'; return '<span class="suit s-'+s+'">'+suitIcon(s)+'</span>'; }
+function explainWinnerHTML(trick,trumpSuit,ansFlags,res){
+  let w=null; for(let i=0;i<trick.length;i++){ if(trick[i]&&trick[i].player===res.winner){ w=trick[i]; break; } }
+  const c=w?w.card:null; const lead=res.leadSuit; if(!c) return '—';
+  if(isJoker(c)) return '<b>Joker '+suitSpan(c.suit)+'</b> gewinnt.<br/>Begründung: Joker ist die höchste Trumpfkarte.';
+  if(isJack(c))  return '<b>Bube '+suitSpan(c.suit)+'</b> gewinnt.<br/>Begründung: Buben stehen über normalen Trumpfkarten (Reihenfolge: ♣ > ♠ > ♥ > ♦).';
+  if(trumpSuit && c.suit===trumpSuit && !ansFlags[res.winner]){
+    const impacted=[]; for(let j=0;j<trick.length;j++){ const e=trick[j]; if(ansFlags[e.player] && e.card && !isJack(e.card) && !isJoker(e.card) && e.card.suit===trumpSuit) impacted.push('p'+e.player); }
+    const note=impacted.length? ' Hinweis: Bei Ansage zählt Trumpf für '+impacted.join(', ')+' nicht.':'';
+    return '<b>Trumpf '+suitSpan(trumpSuit)+'</b> sticht.<br/>Begründung: Höchster Trumpf gewinnt.'+note;
+  }
+  return 'Keine Trumpfkarte.<br/><b>Höchste Karte der angespielten Farbe '+suitSpan(lead)+'</b> gewinnt.';
+}
+
+/* Render */
+function renderScore(){
+  if(!scoreWrap) return; scoreWrap.innerHTML='';
+  const target=tour.target||200; let max=0; for(let i=0;i<tour.N;i++){ max=Math.max(max,tour.totals[i]||0); }
+  for(let i=0;i<tour.N;i++){
+    const sc=document.createElement('div'); sc.className='scCard pc'+i;
+    const head=document.createElement('div'); head.className='scHead';
+    const name=document.createElement('div'); name.className='scName'; name.textContent=(i===0?'Du (p0)':'p'+i);
+    const pill=document.createElement('div'); pill.className='scPill'; pill.textContent=(tour.danger[i]?'Gefahrenzone':'');
+    head.appendChild(name); head.appendChild(pill); sc.appendChild(head);
+    // Show 2x indicator when raise accepted (round-level)
+    try{ if(typeof accepted!=='undefined' && accepted){ const mult=document.createElement('div'); mult.className='scPill'; mult.textContent='x2'; head.appendChild(mult); } }catch(_){ }
+    const bar=document.createElement('div'); bar.className='scBar'; const fill=document.createElement('i'); const pct=Math.max(0,Math.min(100,Math.round(((tour.totals[i]||0)/target)*100))); fill.style.width=pct+'%'; bar.appendChild(fill); sc.appendChild(bar);
+    const meta=document.createElement('div'); meta.className='scMeta';
+    const m1=document.createElement('div'); m1.className='m'; m1.textContent='Total: '+(tour.totals[i]||0)+'/'+target; meta.appendChild(m1);
+    const mDelta=document.createElement('div'); mDelta.className='m';
+    try{
+      const d=(tour.lastRoundDelta && typeof tour.lastRoundDelta[i]==='number')? tour.lastRoundDelta[i] : 0;
+      if(d!==0){ mDelta.textContent='Δ: '+(d>0? ('+'+d): String(d)); } else { mDelta.textContent='Δ: 0'; }
+    }catch(_){ mDelta.textContent='Δ: 0'; }
+    meta.appendChild(mDelta);
+    const m2=document.createElement('div'); m2.className='m'; const tw=(G&&G.trickWins?(G.trickWins[i]||0):0); m2.textContent='Stiche: '+tw; meta.appendChild(m2);
+    const m3=document.createElement('div'); m3.className='m'; m3.textContent='Joker+: '+(G&&G.jokers?(G.jokers[i]||0):0); meta.appendChild(m3);
+    sc.appendChild(meta);
+    if(G && i===G.leader){ const lead=document.createElement('div'); lead.className='leadBadge'; lead.textContent='Ausspiel'; sc.appendChild(lead); }
+    scoreWrap.appendChild(sc);
+  }
+}
+
+function renderPhaseBar(){
+  const el=document.getElementById('phaseBar'); if(!el) return; el.innerHTML='';
+  if(!hasGame()) return;
+  // Simplified: only show current step name during pre; else hide
+  if(G.phase==='pre'){
+    const t=document.createElement('div'); t.className='pill'; t.textContent=(typeof G.preStepIndex==='number')? (G.preStepIndex===0?'Erhöhen':(G.preStepIndex===1?'Trumpf tauschen':'Joker ablegen +7')) : 'Vorphase'; el.appendChild(t);
+  }
+}
+
+function renderStateBar(){
+  const el=document.getElementById('stateBar'); if(!el) return; el.innerHTML=''; if(!hasGame()) return;
+  const row=document.createElement('div'); row.className='hud'; row.style.flexWrap='wrap'; row.style.gap='8px'; row.style.alignItems='center';
+  row.style.position='relative'; row.style.zIndex='2';
+  // Trumpf
+  try{
+  const trump=G.trumpSuit? ('<span class="suit s-'+G.trumpSuit+'">'+suitIcon(G.trumpSuit)+'</span>') : '(keine)';
+    const b=document.createElement('span'); b.className='badge'; b.innerHTML='<b>Trumpf:</b> '+trump; row.appendChild(b);
+    // Update big corner icon
+    try{
+      const tc=document.getElementById('trumpCorner');
+      if(tc){ tc.innerHTML = G.trumpSuit? ('<span class="suit s-'+G.trumpSuit+'">'+suitIcon(G.trumpSuit)+'</span>') : ''; }
+    }catch(_){ }
+  }catch(_){ }
+  // Lead
+  try{
+    const lead=computeLeadSuit(G.trick, G.trumpSuit, G.ansage||[]);
+    const leadHTML=lead? ('<span class="suit s-'+lead+'">'+suitIcon(lead)+'</span>') : '–';
+    const b=document.createElement('span'); b.className='badge'; b.innerHTML='<b>Lead:</b> '+leadHTML; row.appendChild(b);
+  }catch(_){ }
+  // Multiplier
+  try{
+    const mult=(G._raiseMultiplier||1); if(mult>1){ const b=document.createElement('span'); b.className='badge'; b.textContent='x'+mult; row.appendChild(b); }
+  }catch(_){ }
+  el.appendChild(row);
+}
+
+function renderStatusBar(){
+  const el=document.getElementById('statusBar'); if(!el) return; el.innerHTML=''; if(!hasGame()) return;
+  const bar=document.createElement('div');
+  bar.className='hud'; bar.style.flexWrap='wrap'; bar.style.gap='8px';
+  // Phase nur hier anzeigen, keine Tag/Lead Badges mehr
+  const phaseSpan=document.createElement('span'); phaseSpan.className='pill';
+  if(G.phase==='pre'){
+    if(typeof G.preStepIndex==='number'){
+      phaseSpan.textContent = (G.preStepIndex===0? 'Erhöhen' : (G.preStepIndex===1? 'Trumpf tauschen' : 'Joker ablegen +7'));
+    } else { phaseSpan.textContent='Vorphase'; }
+  } else if(G.phase==='eval'){ phaseSpan.textContent='Auswertung'; }
+  else { phaseSpan.textContent='Stich'; }
+  bar.appendChild(phaseSpan);
+  try{ const mult = computeGML? computeGML() : (G._raiseMultiplier||1); if(mult>1){ const x=document.createElement('span'); x.className='pill'; x.textContent='x'+mult; bar.appendChild(x); } }catch(_){ }
+  el.appendChild(bar);
+}
+
+function renderPreMeter(){
+  if(!preMeter) return; preMeter.innerHTML=''; if(!hasGame()||G.phase!=='pre') return;
+  const steps=['Ansage','Trumpf tauschen','Joker ablegen +7'];
+  const idx=typeof G.preStepIndex==='number'? G.preStepIndex:0;
+  const title=document.createElement('span'); title.className='pill';
+  const ready=(G.decidedPre||[]).filter(Boolean).length; const total=tour.N||0;
+  title.textContent=steps[idx]+' ('+ready+'/'+total+')'; preMeter.appendChild(title);
+  for(let i=0;i<tour.N;i++){
+    const d=document.createElement('span'); d.className='chip pc'+i; d.style.setProperty('--col', getComputedStyle(document.documentElement).getPropertyValue('--p'+i));
+    d.innerHTML='<span class="mark"></span>'+(i===0?'Du':'p'+i);
+    if(G.decidedPre && G.decidedPre[i]) d.classList.add('done');
+    if(G.preCursor===i) d.classList.add('current');
+    preMeter.appendChild(d);
+  }
+}
+
+function renderTopTrump(){
+  topTrumpEl.innerHTML=''; const wrap=document.createElement('div'); wrap.className='talon';
+  const talonBox=document.createElement('div'); talonBox.style.display='flex'; talonBox.style.alignItems='flex-start'; talonBox.style.gap='36px'; talonBox.style.flexWrap='wrap';
+  // Trumpfseite
+  const talonCol=document.createElement('div'); talonCol.style.position='relative'; talonCol.style.zIndex='1'; talonCol.style.minWidth='calc(var(--tileW) * var(--mini) * 1.8)';
+  const talonActions=document.createElement('div'); talonActions.className='talonActions';
+  const swapTopBtn=document.createElement('button'); swapTopBtn.className='btn'; swapTopBtn.id='btnSwapTop_Talon'; swapTopBtn.textContent='Trumpfkarte tauschen';
+  swapTopBtn.onclick=function(){ const btn=document.getElementById('btnSwapTop'); if(btn && typeof btn.click==='function'){ btn.click(); } };
+  // Hide talon swap button unless: pre-phase, step=Trumpf tauschen, human turn, not already swapped
+  try{
+    const stepOk = (typeof G.preStepIndex==='number' && G.preStepIndex===1);
+    const canShow = hasGame() && G.phase==='pre' && stepOk && G.preCursor===0 && !(G.trumpSwapped && G.trumpSwapped[G.preCursor]);
+    swapTopBtn.style.display = canShow? '' : 'none';
+  }catch(_){ }
+  talonActions.appendChild(swapTopBtn); talonCol.appendChild(talonActions);
+  const stack=document.createElement('div'); stack.className='stack talonBig'; stack.style.marginBottom='12px'; const topMini=document.createElement('div'); topMini.className='miniCard gold'; const underMini=document.createElement('div'); underMini.className='miniCard under';
+  if(hasGame() && G.top){ setCardStyle(topMini,G.top.suit,G.top.rank,true); }
+  stack.appendChild(underMini); stack.appendChild(topMini); talonCol.appendChild(stack);
+  const info=document.createElement('div'); info.className='talonInfo'; info.style.zIndex='1';
+  let trumpHTML='';
+  if(hasGame() && G.top){
+    const isGrand=(G.top.rank==='J' || G.top.rank==='X');
+    trumpHTML = isGrand ? '<span class="badge-suit">grand</span>' : '<span class="badge-suit">'+suitIcon(G.top.suit)+'</span>';
+  }
+  info.innerHTML=trumpHTML;
+  talonCol.appendChild(info); talonBox.appendChild(talonCol);
+  // Reserve-Seite (ohne Joker-Tausch-Button)
+  const resCol=document.createElement('div'); resCol.style.position='relative'; resCol.style.zIndex='1'; resCol.style.minWidth='calc(var(--tileW) * var(--mini) * 1.8)';
+  const rStack=document.createElement('div'); rStack.className='stack talonBig'; rStack.style.marginBottom='12px'; const rTop=document.createElement('div'); rTop.className='miniCard silver reserveTop'; const rUnder=document.createElement('div'); rUnder.className='miniCard under'; rStack.appendChild(rUnder); rStack.appendChild(rTop);
+  resCol.appendChild(rStack);
+  const rInfo=document.createElement('div'); rInfo.className='talonInfo'; rInfo.style.zIndex='1'; const rLabel='Reserve: '+(hasGame()? (G.reserve? 'verdeckt':'entnommen'):'-'); rInfo.innerHTML='<span class="tag" data-tip="Verdeckte Reservekarte. In der Vorphase kannst du einen Joker dagegen tauschen und Bonus erhalten.">'+rLabel+'</span>';
+  resCol.appendChild(rInfo); talonBox.appendChild(resCol);
+  wrap.appendChild(talonBox); topTrumpEl.appendChild(wrap); bindTooltips();
+}
+
+function renderPreDiscards(){
+  if(!preDiscardsEl) return; preDiscardsEl.innerHTML='';
+  if(!hasGame()) return;
+  const box=document.createElement('div'); box.className='hud';
+  box.style.flexWrap='wrap'; box.style.gap='8px';
+  const title=document.createElement('div'); title.className='small'; title.textContent='Vorphase-Ablagen'; preDiscardsEl.appendChild(title);
+  const row=document.createElement('div'); row.style.display='flex'; row.style.gap='8px';
+  // Topkarte Logik: wenn getauscht, alte Topkarte wird als abgelegt betrachtet
+  try{
+    const items=[];
+    // Alte Topkarten pro Spieler
+    if(G && Array.isArray(G.topHistory)){
+      G.topHistory.forEach((it)=>{ if(it&&it.oldTop){ items.push({kind:'Top-alt', by:it.player, card:it.oldTop}); } });
+    }
+    // Abgelegte Handkarten vom Top-Tausch
+    if(G && Array.isArray(G.topSwapDiscards)){
+      G.topSwapDiscards.forEach((it)=>{ if(it&&it.card){ items.push({kind:'Top-tausch', by:it.player, card:it.card}); } });
+    }
+    // Joker-Tausch: entfernte Joker
+    if(G && Array.isArray(G.jokerDiscards)){
+      G.jokerDiscards.forEach((it)=>{ if(it&&it.card){ items.push({kind:'Joker', by:it.player, card:it.card}); } });
+    }
+    items.forEach((it)=>{
+      const d=document.createElement('div'); d.className='pCard'; d.style.width='calc(var(--tileW)*var(--mini))'; d.style.height='calc(var(--tileH)*var(--mini))';
+      setCardStyle(d, it.card.suit, it.card.rank, true);
+      // No label overlays desired on pre-phase discard cards
+      row.appendChild(d);
+    });
+  }catch(_){ }
+  box.appendChild(row); preDiscardsEl.appendChild(box);
+}
+
+function updateRoundInfo(){
+  roundInfo.innerHTML=''; if(!hasGame()){ roundInfo.innerHTML='<span class="tag">Noch keine Runde</span>'; return; }
+  const tags=[]; tags.push(G.phase==='pre'? 'Vorphase' : (G.phase==='eval'? 'Auswertung' : 'Stich'));
+  roundInfo.innerHTML = tags.map(s=>'<span class="tag">'+s+'</span>').join(' ');
+  preControls.classList.toggle('hidden', G.phase!=='pre');
+  renderPreMeter();
+  renderPhaseBar();
+  renderStateBar();
+  renderStatusBar();
+  try{
+    // Phase focus: mark relevant containers
+    document.querySelectorAll('.phaseFocus').forEach(n=>n.classList.remove('phaseFocus'));
+    // Remove action pulses when leaving phase
+    try{ document.querySelectorAll('.pulse').forEach(n=>n.classList.remove('pulse')); }catch(_){ }
+    preControls.classList.remove('outlinePulse');
+    if(G.phase!=='pre' && riskDesc){ riskDesc.style.display='none'; }
+    if(G.phase==='pre'){ preControls.classList.add('phaseFocus'); }
+    else if(G.phase==='play'){ document.querySelector('#trickZone')?.classList.add('phaseFocus'); }
+    else if(G.phase==='eval'){ document.querySelector('#trickControls')?.classList.add('phaseFocus'); }
+  }catch(_){ }
+}
+
+function renderTrick(){
+  trickZone.innerHTML=''; if(!hasGame()) return; const res=(G.phase==='eval'&&G._evalRes)? G._evalRes:null;
+  for(let i=0;i<tour.N;i++){
+    const slot=document.createElement('div'); slot.className='slot pcRow pc'+i;
+    const who=document.createElement('div'); who.className='who'; who.textContent=i===0?'Du':('p'+i);
+    const cardDiv=document.createElement('div'); cardDiv.className='pCard frame';
+    let entry=null; for(let t=0;t<G.trick.length;t++){ if(G.trick[t] && G.trick[t].player===i){ entry=G.trick[t]; break; } }
+    if(entry && entry.card){ const c=entry.card; setCardStyle(cardDiv,c.suit,c.rank); const label=document.createElement('div'); label.className='cardLabel'; label.innerHTML='<span class="suit s-'+c.suit+'">'+suitIcon(c.suit)+'</span> <span class="rank rank-'+c.rank+'">'+c.rank+'</span>'; cardDiv.appendChild(label); }
+    if(res && res.winner===i){ cardDiv.classList.add('evalGlow'); const tip=explainWinnerHTML(G.trick,G.trumpSuit,[],res); cardDiv.setAttribute('data-tip',tip); cardDiv.setAttribute('data-pop','1'); }
+    slot.appendChild(who); slot.appendChild(cardDiv); trickZone.appendChild(slot);
+  }
+  renderTrickControls(); bindTooltips();
+}
+function renderTrickControls(){
+  trickControls.innerHTML=''; if(!hasGame()) return; if(G.phase==='eval'){
+    const btn=document.createElement('button'); btn.id='btnTrickNext'; btn.className='btn primary'; btn.textContent='Weiter'; btn.setAttribute('data-tip','Stich übernehmen und nächste Karte ausspielen'); btn.onclick=finalizeTrick; trickControls.appendChild(btn);
+    // Countdown + Stop Auto
+    const c=document.createElement('span'); c.id='evalCountdown'; c.className='pill'; c.style.marginLeft='6px'; c.textContent='Auto in …'; trickControls.appendChild(c);
+    const stop=document.createElement('button'); stop.id='btnEvalStop'; stop.className='btn mini'; stop.style.marginLeft='4px'; stop.textContent='Auto stoppen';
+    stop.onclick=()=>{ try{ clearTimeout(evalTimer); evalTimer=null; if(evalCountdownTimer){ clearInterval(evalCountdownTimer); evalCountdownTimer=null; } const cc=document.getElementById('evalCountdown'); if(cc){ cc.remove(); } stop.remove(); showToast('Auto-Weiter gestoppt'); }catch(_){ } };
+    trickControls.appendChild(stop);
+  }
+}
+
+/* Turn flow */
+const SPEED={ humanToTrick:360, aiBetween:460, resolvePause:700, postResolve:420, preAI:480 };
+let aiTimer=null; let evalTimer=null; let evalCountdownTimer=null; let evalAutoDeadline=0;
+function currentPlayer(){ return (G.leader + G.trick.length) % tour.N; }
+
+/* ===== NEW: Simple but safe AI card picker (fixes ReferenceError) ===== */
+function pickCardAI(hand, ctx){
+  ctx = ctx || {}; const leadSuit = ctx.leadSuit || null; const trumpSuit = ctx.trumpSuit || null; const ansage = !!ctx.ansage;
+  const legal = legalMoves(hand, leadSuit, trumpSuit, ansage);
+  if(!legal || legal.length===0) return null;
+  // Try to win cheaply if trick already has cards
+  if(G && Array.isArray(G.trick) && G.trick.length>0){
+    let best=null; const me = currentPlayer();
+    for(const c of legal){
+      const sim=[...G.trick, {player:me, card:c}];
+      const res=compareTrick(sim, G.leader, G.trumpSuit, G.ansage||[]);
+      const wins = (res.winner===me);
+      // Cheapness metric: avoid spending trump/Joker/Jack if not needed
+      let cost = (PVAL[c.rank]||0);
+      if(isJoker(c)) cost += 1000; else if(isJack(c)) cost += 800; else if(trumpSuit && c.suit===trumpSuit && !ansage) cost += 400;
+      if(wins){ if(!best || cost < best.cost){ best={card:c, cost}; }
+      }
+    }
+    if(best) return best.card; // play the minimal-cost winning card
+  }
+  // Otherwise: play the lowest-impact legal card (keep power cards)
+  function dumpValue(c){
+    if(isJoker(c)) return 10000;
+    if(isJack(c))  return 9000;
+    let v=(PVAL[c.rank]||0);
+    if(trumpSuit && c.suit===trumpSuit && !ansage) v += 500; // prefer to keep trump
+    return v;
+  }
+  legal.sort((a,b)=>dumpValue(a)-dumpValue(b));
+  return legal[0];
+}
+
+function scheduleAI(delay){ delay=(delay===undefined)?SPEED.aiBetween:delay; clearTimeout(aiTimer); if(!hasGame()||G.phase!=='play') return; if(currentPlayer()===0) return; aiTimer=setTimeout(aiPlayStep,delay); }
+function aiPlayStep(){ if(!hasGame()||G.phase!=='play') return; const p=currentPlayer(); if(p===0) return; const hand=G.hands[p].filter(Boolean); const leadSuit=computeLeadSuit(G.trick,G.trumpSuit,[]);
+  const card=pickCardAI(hand,{leadSuit,trumpSuit:G.trumpSuit,ansage:false}); if(!card){ logPlay('p'+p+' hat keine spielbare Karte'); return; }
+  const i=G.hands[p].indexOf(card); if(i>=0) G.hands[p].splice(i,1); else G.hands[p].splice(0,1);
+  G.trick.push({player:p,card}); logPlay('p'+p+' spielt '+SUIT_LABEL[card.suit]+' '+card.rank); renderTrick();
+  const slotCol=trickZone.children[p]; const slot=slotCol? slotCol.querySelector('.pCard'):null; if(slot){ slot.classList.add('animIn'); setTimeout(()=>slot.classList.remove('animIn'),240); }
+  if(G.trick.length===tour.N){ startTrickEvaluation(); } else { scheduleAI(); }
+}
+function startTrickEvaluation(){ if(!hasGame()) return; const res=compareTrick(G.trick,G.leader,G.trumpSuit,G.ansage||[]); G._evalRes=res; G.phase='eval'; updateRoundInfo(); renderTrick(); tutEmit('play:trick:full');
+  clearTimeout(evalTimer); if(evalCountdownTimer){ clearInterval(evalCountdownTimer); evalCountdownTimer=null; }
+  const AUTO_MS = SPEED.resolvePause+1400; evalAutoDeadline = Date.now()+AUTO_MS;
+  // Warte auf Bestätigung aller Spieler: Für Singleplayer reicht dein Klick auf "Weiter"
+  // Auto-Fallback bleibt bestehen, jedoch mit sichtbarem Countdown
+  evalTimer=setTimeout(()=>{ try{ if(hasGame() && G.phase==='eval'){ finalizeTrick(); } }catch(_){ } }, AUTO_MS);
+  try{
+    const upd=()=>{ try{
+      const el=document.getElementById('evalCountdown'); if(!el){ return; }
+      const ms=Math.max(0, evalAutoDeadline - Date.now());
+      const s=Math.ceil(ms/1000);
+      el.textContent = 'Auto in '+s+'s';
+      if(ms<=0){ clearInterval(evalCountdownTimer); evalCountdownTimer=null; }
+    }catch(_){ }
+    };
+    upd(); evalCountdownTimer=setInterval(upd, 200);
+  }catch(_){ }
+}
+function finalizeTrick(){ if(!hasGame()||G.phase!=='eval') return; clearTimeout(evalTimer); if(evalCountdownTimer){ clearInterval(evalCountdownTimer); evalCountdownTimer=null; }
+  const res=G._evalRes; const winner=res.winner; const slotCol=trickZone.children[winner]; const slot=slotCol? slotCol.querySelector('.pCard'):null; if(slot){ slot.classList.add('winPulse'); setTimeout(()=>{ if(slot) slot.classList.remove('winPulse'); },1000); }
+  const wonCards=[]; for(let k=0;k<G.trick.length;k++){ if(G.trick[k]&&G.trick[k].card) wonCards.push(G.trick[k].card); }
+  G.piles[winner].push.apply(G.piles[winner],wonCards); G.trickWins[winner]++; logPlay('Stich an p'+winner);
+  G.leader=winner; G.trick=[]; G._evalRes=null; G.phase='play'; renderScore(); renderTopTrump(); renderTrick();
+  let allEmpty=true; for(let p=0;p<tour.N;p++){ if(G.hands[p].length>0){ allEmpty=false; break; } }
+  tutEmit('trick:finalized'); if(allEmpty){ endRound(); return; }
+  if(currentPlayer()!==0) scheduleAI(SPEED.postResolve);
+}
+
+/* Interaktion */
+function playHumanCard(card,el){ if(!hasGame()||G.phase!=='play'||swapArmed) return; const i=G.hands[0].indexOf(card); if(i<0) return; const fr=safeRect(el); const firstCol=trickZone.children[0]; const dstEl=firstCol? firstCol.querySelector('.pCard'):null; const tr=dstEl? safeRect(dstEl): fr; const ghost=document.createElement('div'); ghost.className='pCard'; setCardStyle(ghost,card.suit,card.rank); ghost.style.position='fixed'; ghost.style.left=fr.left+'px'; ghost.style.top=fr.top+'px'; ghost.style.zIndex=50; ghost.style.transition='transform '+SPEED.humanToTrick+'ms var(--ease), opacity '+SPEED.humanToTrick+'ms var(--ease)'; ghost.style.boxShadow='0 18px 45px rgba(0,0,0,.45)'; document.body.appendChild(ghost);
+  G.hands[0].splice(i,1); renderHands(); const dx=(tr.left+tr.width/2)-(fr.left+(fr.width||0)/2); const dy=(tr.top+tr.height/2)-(fr.top+(fr.height||0)/2); requestAnimationFrame(()=>{ ghost.style.transform='translate('+dx+'px,'+dy+'px)'; ghost.style.opacity='0.96'; }); setTimeout(()=>{ ghost.remove(); G.trick.push({player:0,card}); logPlay('Du spielst '+SUIT_LABEL[card.suit]+' '+card.rank); renderTrick(); tutEmit('play:human:card'); if(G.trick.length===tour.N){ startTrickEvaluation(); } else { scheduleAI(); } }, SPEED.humanToTrick+20);
+}
+
+/* Vorphase – Reihum mit Pre‑Flow‑Meter */
+if(btnOpferJoker){ btnOpferJoker.onclick=function(){ if(!hasGame()||G.phase!=='pre') return; const p=G.preCursor; if(p!==0) return; if(typeof G.preStepIndex!=='number'||G.preStepIndex!==2){ showToast('Nicht im Schritt „Joker ablegen“.'); return; } let idx=-1; for(let i=0;i<G.hands[p].length;i++){ if(G.hands[p][i]&&G.hands[p][i].rank==='X'){ idx=i; break; } } if(idx<0){ showToast('Kein Joker in der Hand – übersprungen'); G.decidedPre[p]=true; advancePreCursor(); return; }
+  const joker=G.hands[p][idx]; G.hands[p].splice(idx,1);
+  // Refill back to 5 if possible
+  try{
+    if(Array.isArray(G.hands[p]) && G.hands[p].length<5 && Array.isArray(G.deck) && G.deck.length>0){
+      const dIdx=(Math.random()*G.deck.length)|0; const refill=G.deck.splice(dIdx,1)[0]; if(refill) G.hands[p].push(refill);
+    } else if(Array.isArray(G.hands[p]) && G.hands[p].length<5) { showToast('Kein Nachziehen möglich: Talon leer.'); }
+  }catch(_){ }
+  const bonus=7; G.jokers[p]=(G.jokers[p]||0)+bonus; G.trickWins[p]=(G.trickWins[p]||0)+1;
+  if(!Array.isArray(G.jokerDiscards)) G.jokerDiscards=[];
+  G.jokerDiscards.push({player:p, card:{suit:joker.suit, rank:joker.rank}});
+  renderTopTrump(); renderHands(); renderScore(); renderPreMeter(); renderPreDiscards();
+  try{ const sc=document.querySelector('#scoreWrap .scCard.pc'+p); if(sc){ const pop=document.createElement('div'); pop.className='scorePop'; pop.textContent='+7 · +1 Stich'; sc.appendChild(pop); setTimeout(()=>pop.remove(),1000); } }catch(_){ }
+  logPlay('p'+p+' legt Joker ab. +'+bonus+' & +1 virtueller Stich.'); btnOpferJoker.disabled=true;
+  // mark decided and advance
+  G.decidedPre[p]=true; advancePreCursor(); } }
+if(btnSwapTop){ btnSwapTop.onclick=function(){ if(!hasGame()||G.phase!=='pre') return; const p=G.preCursor; if(typeof G.preStepIndex!=='number'||G.preStepIndex!==1){ showToast('Nicht im Schritt „Trumpfkarte tauschen“.'); return; } if(G.trumpSwapped[p]){ if(p===0) showToast('In dieser Vorphase schon getauscht.'); return; } if(p!==0){ return; }
+  // Arm selection: highlight hand cards until one is chosen to discard
+  swapArmed=!swapArmed; preHint.textContent= swapArmed? 'Wähle nun eine Handkarte aus, die du ablegst. Alte Top wandert in die Ablage, neue Top wird vom Talon aufgedeckt.' : '';
+  if(preStepPill){ preStepPill.style.display= swapArmed? 'inline-flex':'none'; }
+  if(preStepLabel){ preStepLabel.textContent= swapArmed? 'Trumpfkarte tauschen' : ''; }
+  renderHands();
+}; }
+if(preStepCancel){ preStepCancel.onclick=function(){ swapArmed=false; preHint.textContent=''; if(preStepPill) preStepPill.style.display='none'; } }
+function handlePreSwapClick(card){ if(!swapArmed) return false; const p=G.preCursor; if(p!==0) return false; const i=G.hands[p].indexOf(card); if(i<0) return false;
+  // optional confirm
+  if(PREVIEW_CONFIRM_ENABLED){ const want=confirm('Diese Karte ablegen und neue Top aufdecken?'); if(!want) return false; }
+  // Need deck to draw a new top
+  if(!Array.isArray(G.deck) || G.deck.length===0){ showToast('Kein Talon mehr: Tausch nicht möglich.'); return false; }
+  const oldTop=G.top;
+  // Remove selected hand card and track discard
+  const discarded=G.hands[p].splice(i,1)[0];
+  if(!Array.isArray(G.topSwapDiscards)) G.topSwapDiscards=[]; G.topSwapDiscards.push({player:p, card:{suit:discarded.suit, rank:discarded.rank}});
+  // Track old top in pre-discard board
+  if(!Array.isArray(G.topHistory)) G.topHistory=[]; if(oldTop) G.topHistory.push({player:p, oldTop:{suit:oldTop.suit, rank:oldTop.rank}});
+  // Draw random new top from remaining deck
+  const idx=(Math.random()*G.deck.length)|0; const newTop=G.deck.splice(idx,1)[0];
+  G.top=newTop; G.trumpSuit=topcardTrump(newTop); G.trumpSwapped[p]=true;
+  // Refill hand back to 5 if possible
+  try{
+    if(Array.isArray(G.hands[p]) && G.hands[p].length<5 && Array.isArray(G.deck) && G.deck.length>0){
+      const dIdx=(Math.random()*G.deck.length)|0; const refill=G.deck.splice(dIdx,1)[0]; if(refill) G.hands[p].push(refill);
+    } else if(Array.isArray(G.hands[p]) && G.hands[p].length<5) { showToast('Kein Nachziehen möglich: Talon leer.'); }
+  }catch(_){ }
+  // End swap mode
+  swapArmed=false; preHint.textContent=''; if(preStepPill) preStepPill.style.display='none';
+  // Hide swap buttons until next Vorphase
+  try{ if(btnSwapTop){ btnSwapTop.style.display='none'; } const talonBtn=document.getElementById('btnSwapTop_Talon'); if(talonBtn){ talonBtn.style.display='none'; } }catch(_){ }
+  renderHands(); renderTopTrump(); renderPreMeter(); renderPreDiscards(); renderStateBar();
+  logPlay('p'+p+' tauscht Trumpfkarte: legt '+SUIT_LABEL[discarded.suit]+' '+discarded.rank+' ab; neue Top bestimmt Trumpf '+(G.trumpSuit?SUIT_LABEL[G.trumpSuit]:'(keine)'));
+  try{ G.preStepDoneCount=(G.preStepDoneCount||0)+1; }catch(_){ }
+  // Mark this player as done for this pre-step to auto-advance without extra pass
+  try{ if(Array.isArray(G.decidedPre)) G.decidedPre[p]=true; }catch(_){ }
+  advancePreCursor();
+  return true; }
+
+// Swap mode hover hint: which card will be discarded; new top is random
+document.addEventListener('mouseover', function(ev){ try{
+  if(!swapArmed||!hasGame()||G.phase!=='pre' || G.preCursor!==0) return;
+  const target=ev.target;
+  if(!target || !target.classList || !target.classList.contains('pCard')) return;
+  const lab=target.querySelector('.cardLabel'); if(!lab) return;
+  const txt=lab.textContent||'';
+  let badge=document.getElementById('trumpPreviewBadge');
+  if(!badge){ badge=document.createElement('span'); badge.id='trumpPreviewBadge'; badge.className='pill'; badge.textContent='Ablegen: '+txt+' · neue Top zufällig'; const el=document.querySelector('#topTrump .talonInfo'); if(el) el.appendChild(badge); }
+  else { badge.textContent='Ablegen: '+txt+' · neue Top zufällig'; }
+}catch(_){}});
+document.addEventListener('mouseout', function(ev){ try{
+  const badge=document.getElementById('trumpPreviewBadge'); if(badge){ badge.remove(); }
+}catch(_){}});
+
+function preHumanDone(){ if(!hasGame()||G.phase!=='pre') return; const p=G.preCursor; if(p!==0) return; G.decidedPre[p]=true; btnPrephaseDone.disabled=true; advancePreCursor(); }
+if(btnPrephaseDone){ btnPrephaseDone.addEventListener('click', preHumanDone); }
+const btnPrephaseDoneInline=document.getElementById('btnPrephaseDone_inline');
+if(btnPrephaseDoneInline){ btnPrephaseDoneInline.addEventListener('click', ()=>{ try{ if(!hasGame()||G.phase!=='pre') return; if(typeof G.preStepIndex==='number' && G.preStepIndex===1 && G.preCursor===0){ // treat as pass in swap step
+  G.decidedPre[G.preCursor]=true; advancePreCursor();
+} else if (typeof G.preStepIndex==='number' && G.preStepIndex===2 && G.preCursor===0){ // explicit pass in Joker step
+  G.decidedPre[G.preCursor]=true; advancePreCursor();
+} else { preHumanDone(); } }catch(_){ preHumanDone(); } }); }
+
+// Risiko-Ansage (GML): Spieler wählen Risiko (an/aus); GML: 0→1x, 1→2x, ≥2→3x
+let raiseVotes=[]; let accepted=false;
+function resetRaiseVotes(){ raiseVotes=Array(tour.N).fill(null); accepted=false; G._raiseMultiplier=1; }
+function computeGML(){ try{ const yesCount = raiseVotes.filter(v=>v===true).length; return (yesCount>=2? 3 : yesCount===1? 2 : 1); }catch(_){ return 1; } }
+function updateRaiseAccepted(){ try{ const yesCount = raiseVotes.filter(v=>v===true).length; accepted = (yesCount>=1); G._raiseMultiplier = computeGML(); }catch(_){ } }
+if(btnRaise){ btnRaise.addEventListener('click', ()=>{ if(!hasGame()||G.phase!=='pre') return; const p=G.preCursor; if(p!==0) return; if(typeof G.preStepIndex!=='number'||G.preStepIndex!==0){ showToast('Nicht im Schritt „Risiko-Modus“'); return; }
+  raiseVotes[p]=true; logPlay('p'+p+' wählt Risiko‑Modus.'); G.decidedPre[p]=true; renderPreMeter(); updateRaiseAccepted(); showToast('GML: x'+(G._raiseMultiplier||1)); advancePreCursor(); }); }
+if(btnRaiseNo){ btnRaiseNo.addEventListener('click', ()=>{ if(!hasGame()||G.phase!=='pre') return; const p=G.preCursor; if(p!==0) return; if(typeof G.preStepIndex!=='number'||G.preStepIndex!==0){ showToast('Nicht im Schritt „Sicherer Modus“'); return; }
+  raiseVotes[p]=false; logPlay('p'+p+' wählt Sicherer Modus.'); G.decidedPre[p]=true; renderPreMeter(); updateRaiseAccepted(); advancePreCursor(); }); }
+
+function preAIDecide(p){ if(!hasGame()||G.phase!=='pre') return;
+  const hand=G.hands[p].slice();
+  // Joker ↔ Reserve?
+  if(G.reserve && aiWantsJokerSwap(hand)){
+    const idx=G.hands[p].findIndex(c=>c&&c.rank==='X'); if(idx>=0){ const reserveCard=G.reserve; G.reserve=null; const joker=G.hands[p][idx]; G.hands[p].splice(idx,1); if(reserveCard) G.hands[p].push(reserveCard); const bonus=7; G.jokers[p]=(G.jokers[p]||0)+bonus; G.trickWins[p]=(G.trickWins[p]||0)+1; logPlay('p'+p+' tauscht Joker (Reserve). +'+bonus+' & +1 Stich.'); }
+  }
+  // Topkarte tauschen?
+  if(!G.trumpSwapped[p]){
+    // New rule: AI discards one of its hand cards to swap top
+    if(G.top && Array.isArray(G.deck) && G.deck.length>0 && Array.isArray(G.hands[p]) && G.hands[p].length>0){
+      // pick a discard: lowest dump value (avoid good trump and power cards)
+      function dumpValue(c){ if(!c) return 99999; if(isJoker(c)) return 10000; if(isJack(c)) return 9000; let v=(PVAL[c.rank]||0); if(G.trumpSuit && c.suit===G.trumpSuit && !G.ansage[p]) v+=500; return v; }
+      const idxD = G.hands[p].map((c,i)=>({i, v:dumpValue(c)})).sort((a,b)=>a.v-b.v)[0].i;
+      const discarded = G.hands[p].splice(idxD,1)[0];
+      if(!Array.isArray(G.topSwapDiscards)) G.topSwapDiscards=[]; G.topSwapDiscards.push({player:p, card:{suit:discarded.suit, rank:discarded.rank}});
+      if(!Array.isArray(G.topHistory)) G.topHistory=[]; G.topHistory.push({player:p, oldTop:{suit:G.top.suit, rank:G.top.rank}});
+      const idx=(Math.random()*G.deck.length)|0; const newTop=G.deck.splice(idx,1)[0];
+      G.top=newTop; G.trumpSuit=topcardTrump(newTop); G.trumpSwapped[p]=true; logPlay('p'+p+' tauscht Topkarte (legt Karte ab). Trumpf: '+(G.trumpSuit?SUIT_LABEL[G.trumpSuit]:'(keine)'));
+      // Refill back to 5 if possible
+      try{
+        if(Array.isArray(G.hands[p]) && G.hands[p].length<5 && Array.isArray(G.deck) && G.deck.length>0){
+          const dIdx=(Math.random()*G.deck.length)|0; const refill=G.deck.splice(dIdx,1)[0]; if(refill) G.hands[p].push(refill);
+        }
+      }catch(_){ }
+    }
+  }
+  renderTopTrump(); renderScore(); renderPreMeter();
+  G.decidedPre[p]=true;
+}
+
+// One-step AI resolver per current pre-step
+function preAIStep(p){ if(!hasGame()||G.phase!=='pre') return; if(typeof G.preStepIndex!=='number') G.preStepIndex=0;
+  const step=G.preStepIndex; if(step===0){ // Raise: random vote
+    if(!Array.isArray(raiseVotes) || raiseVotes.length!==tour.N) resetRaiseVotes();
+    const yes = Math.random()<0.5; raiseVotes[p]=yes; logPlay('p'+p+' stimmt '+(yes?'FÜR':'GEGEN')+' Erhöhen.'); updateRaiseAccepted();
+  } else if(step===1){ // Trumpf tauschen: reuse AI logic, else pass
+    const before=(G.trumpSwapped && G.trumpSwapped[p]);
+    preAIDecide(p);
+    const after=(G.trumpSwapped && G.trumpSwapped[p]);
+    if(before===after){ /* pass */ }
+  } else if(step===2){ // Joker ablegen: if has Joker, drop
+    const idx=G.hands[p].findIndex(c=>c&&c.rank==='X'); if(idx>=0){ const joker=G.hands[p][idx]; G.hands[p].splice(idx,1);
+      // Refill to 5
+      try{ if(Array.isArray(G.hands[p]) && G.hands[p].length<5 && Array.isArray(G.deck) && G.deck.length>0){ const dIdx=(Math.random()*G.deck.length)|0; const refill=G.deck.splice(dIdx,1)[0]; if(refill) G.hands[p].push(refill); } }catch(_){ }
+      const bonus=7; G.jokers[p]=(G.jokers[p]||0)+bonus; G.trickWins[p]=(G.trickWins[p]||0)+1; if(!Array.isArray(G.jokerDiscards)) G.jokerDiscards=[]; G.jokerDiscards.push({player:p, card:{suit:joker.suit, rank:joker.rank}}); logPlay('p'+p+' legt Joker ab. +'+bonus+' & +1 Stich.'); }
+  }
+  G.decidedPre[p]=true; renderPreMeter();
+}
+
+function advancePreCursor(){
+  renderPreMeter();
+  // Nächsten unentschiedenen finden
+  let next=-1; for(let k=0;k<tour.N;k++){ const idx=(G.leader + k) % tour.N; if(!G.decidedPre[idx]){ next=idx; break; } }
+  if(next===-1){ // Alle Spieler in diesem Durchlauf fertig
+    if(typeof G.preStepIndex !== 'number') G.preStepIndex = 0;
+    if(G.preStepIndex < 2){
+      // Nächsten Vorphasen-Schritt starten
+      G.preStepIndex++;
+      G.decidedPre = Array(tour.N).fill(false);
+      // Schritt-Hinweis aktualisieren
+    try{
+    if(G.preStepIndex===0){ preHint.textContent='Schritt 1/3: Ansage (Risiko/Sicher)'; }
+        else if(G.preStepIndex===1){ preHint.textContent='Schritt 2/3: Trumpfkarte tauschen'; }
+        else if(G.preStepIndex===2){ preHint.textContent='Schritt 3/3: Joker ablegen +7'; }
+      }catch(_){ }
+      // Weiter mit nächstem Durchlauf
+      setTimeout(advancePreCursor, 10);
+      return;
+    }
+    // Alle drei Schritte abgeschlossen → Stichphase starten
+    try{ swapArmed=false; if(preStepPill) preStepPill.style.display='none'; }catch(_){ }
+    G.phase='play'; updateRoundInfo(); renderTopTrump(); renderPreDiscards(); renderHands(); renderTrick();
+    logPlay('Vorphase beendet – Stichphase startet.'); tutEmit('phase:pre:done');
+    if((G.leader % tour.N)!==0) scheduleAI();
+    return; }
+  G.preCursor=next; updateRoundInfo(); updatePreControlsVisibility();
+  // Falls KI dran, automatisch handeln
+  if(next!==0){ btnPrephaseDone.disabled=true; preControls.classList.remove('hidden'); setTimeout(()=>{ try{ preAIStep(next); }catch(_){ } advancePreCursor(); }, 120); }
+  else { // Human
+    btnPrephaseDone.disabled=false; if(btnPrephaseDoneInline) btnPrephaseDoneInline.disabled=false; preControls.classList.remove('hidden');
+    try{
+      if(typeof G.preStepIndex !== 'number') G.preStepIndex = 0;
+      const ready=(G.decidedPre||[]).filter(Boolean).length; const total=tour.N||0;
+      const label = (G.preStepIndex===0? 'Erhöhen' : (G.preStepIndex===1? 'Trumpfkarte tauschen' : 'Joker ablegen +7'));
+      preHint.textContent='Schritt '+(G.preStepIndex+1)+'/3: '+label+' ('+ready+'/'+total+')';
+    }catch(_){ }
+    updatePreControlsVisibility();
+    renderHands();
+    // Auto-skip for Joker step when human has no Joker
+    try{
+      if(G.preStepIndex===2){
+        const hasJoker = Array.isArray(G.hands[0]) && G.hands[0].some(c=>c&&c.rank==='X');
+        if(!hasJoker){ showToast('Kein Joker – übersprungen'); G.decidedPre[0]=true; setTimeout(advancePreCursor, 50); return; }
+      }
+    }catch(_){ }
+    // Ensure swap buttons visible only if not swapped yet
+    try{
+      const talonBtn=document.getElementById('btnSwapTop_Talon'); if(talonBtn) talonBtn.style.display = (G.preStepIndex===1 && !G.trumpSwapped[0] ? '' : 'none');
+      if(btnSwapTop) btnSwapTop.style.display = (G.preStepIndex===1 && !G.trumpSwapped[0] ? '' : 'none');
+    }catch(_){ }
+  }
+}
+
+function computeRoundLeader(){ if(tour.round<=1){ return (Math.random()*tour.N)|0; } let min=Infinity, idx=0; for(let i=0;i<tour.N;i++){ const t=tour.totals[i]||0; if(t<min){ min=t; idx=i; } } return idx; }
+
+/* Lifecycle */
+function resetTournament(){ const nVal=parseInt((uiPlayers&&uiPlayers.value)||'3',10); const tVal=parseInt((uiTarget&&uiTarget.value)||'200',10); const jVal=parseInt((uiJokerB&&uiJokerB.value)||'15',10); tour.N=isFinite(nVal)?nVal:3; tour.target=isFinite(tVal)?tVal:200; tour.jokerBonus=isFinite(jVal)?jVal:15; tour.totals=Array(tour.N).fill(0); tour.danger=Array(tour.N).fill(false); tour.round=0; renderScore(); }
+function newRound(){ clearTimeout(aiTimer); const nVal=parseInt((uiPlayers&&uiPlayers.value)||'3',10); const tVal=parseInt((uiTarget&&uiTarget.value)||'200',10); const jVal=parseInt((uiJokerB&&uiJokerB.value)||'15',10); tour.N=isFinite(nVal)?nVal:3; tour.target=isFinite(tVal)?tVal:200; tour.jokerBonus=isFinite(jVal)?jVal:15; tour.round++; const deck=shuffle(makeDeck()); const hands=Array.from({length:tour.N},()=>[]); for(let r=0;r<5;r++){ for(let p=0;p<tour.N;p++){ const c=deck.shift(); if(c) hands[p].push(c); } } const top=deck.shift(); const reserve=deck.shift(); const trumpSuit=topcardTrump(top); const leader=computeRoundLeader(); G={deck,hands,top,reserve,trumpSuit,leader,trick:[],piles:Array.from({length:tour.N},()=>[]),trickWins:Array(tour.N).fill(0),ansage:Array(tour.N).fill(0),jokers:Array(tour.N).fill(0),trumpSwapped:Array(tour.N).fill(false),phase:'pre',you:0,_evalRes:null,preCursor:leader,decidedPre:Array(tour.N).fill(false)};
+  // reset pre-discard trackers and show swap buttons wieder
+  G.topHistory=[]; G.jokerDiscards=[]; G.topSwapDiscards=[];
+  // initialize step flow
+  G.preStepIndex=0; G.preStepDoneCount=0; // 0: Erhöhen, 1: Trumpfkarte tauschen, 2: Joker ablegen +7
+  resetRaiseVotes();
+  if(playLog) playLog.textContent=''; renderScore(); renderTopTrump(); renderPreDiscards(); renderTrick(); renderHands(); updateRoundInfo(); btnPrephaseDone.disabled=true; logPlay('Neue Runde gestartet (Vorphase) – Reservekarte verdeckt bereitgelegt. (Leader: p'+leader+')'); tutEmit('round:new'); advancePreCursor(); }
+if(btnNewRound){ btnNewRound.addEventListener('click',()=>{ if(!tour.totals.length || tour.totals.length!==parseInt((uiPlayers&&uiPlayers.value)||'3',10)) resetTournament(); newRound(); }); }
+
+function renderHands(){
+  yourHandEl.innerHTML=''; if(!hasGame()) return; const leadSuit=computeLeadSuit(G.trick,G.trumpSuit,G.ansage||[]);
+  const ansSelf=(G.ansage&&G.ansage[0])? true:false; const legal=legalMoves(G.hands[0],leadSuit,G.trumpSuit,ansSelf); const hand=G.hands[0].filter(Boolean).slice().sort((a,b)=>(a.suit+a.rank).localeCompare(b.suit+b.rank));
+  const swapMode = (G.phase==='pre' && swapArmed && G.preCursor===0);
+  // Improved sorting: group by suit (Trumpf last), within suit by rank; J/X to the far right
+  function rankIdx(r){ switch(r){ case '7':return 0; case '8':return 1; case '9':return 2; case '10':return 3; case 'Q': return 4; case 'K': return 5; case 'A': return 6; default: return 7; } }
+  function suitPos(s){ try{ const base=['spades','hearts','diamonds','clubs']; let i=base.indexOf(s); if(i<0) i=0; if(G.trumpSuit && s===G.trumpSuit) i+=10; return i; }catch(_){ return 0; } }
+  function handSortComparator(a,b){
+    const ax=isJack(a)? 1:0, ay=isJoker(a)? 1:0; const bx=isJack(b)? 1:0, by=isJoker(b)? 1:0;
+    const aIsSpecial = ay? 2 : (ax? 1 : 0); const bIsSpecial = by? 2 : (bx? 1 : 0);
+    if(aIsSpecial!==bIsSpecial) return aIsSpecial - bIsSpecial; // normals < J < X
+    if(aIsSpecial>0){ // both special: J before X
+      if(ax!==bx) return bx - ax; // J(1) before X(0) after inversion
+      // tie-break by suit
+      return suitPos(a.suit) - suitPos(b.suit);
+    }
+    const s=suitPos(a.suit) - suitPos(b.suit); if(s!==0) return s; return rankIdx(a.rank) - rankIdx(b.rank);
+  }
+  const handSorted = G.hands[0].filter(Boolean).slice().sort(handSortComparator);
+  handSorted.forEach(c=>{ const wrap=document.createElement('div'); wrap.className='handItem'; const d=document.createElement('div'); d.className='pCard you'; d.setAttribute('role','button'); d.setAttribute('aria-label',suitIcon(c.suit)+' '+c.rank); d.tabIndex=0; setCardStyle(d,c.suit,c.rank);
+    const isLegalPlay=(G.phase==='play' && legal.indexOf(c)!==-1);
+    if(isLegalPlay || swapMode) d.classList.add('legal');
+    if(G.phase!=='play' && !swapMode) d.classList.add('locked');
+    d.title=SUIT_LABEL[c.suit]+' '+c.rank; d.addEventListener('mouseenter',()=>sounds.hover());
+    d.onclick=e=>{ if(G.phase==='pre'){ if(handlePreSwapClick(c)) return; }
+      if(G.phase!=='play'){ return; }
+      if(!isLegalPlay){ d.classList.add('shake'); setTimeout(()=>d.classList.remove('shake'),220); ariaLive.textContent='Farbzwang: '+(leadSuit? SUIT_LABEL[leadSuit]:'—'); TUT.errorThisStep=true; return; }
+      const target=e.currentTarget||d; sounds.play(); playHumanCard(c,target); };
+    d.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); d.click(); } };
+    const lab=document.createElement('div'); lab.className='cardLabel'; lab.innerHTML='<span class="suit s-'+c.suit+'">'+suitIcon(c.suit)+'</span> <span class="rank rank-'+c.rank+'">'+c.rank+'</span>'; d.appendChild(lab); wrap.appendChild(d); yourHandEl.appendChild(wrap); });
+  // Render win probability badges under hand cards when Help is active
+  if(showWinProbs && G.phase==='play'){
+    try{
+      for(let i=0;i<yourHandEl.children.length;i++){
+        const wrap=yourHandEl.children[i];
+        const cardDiv=wrap && wrap.firstChild ? wrap.firstChild : null;
+        const c=handSorted[i]; if(!c) continue;
+        const prob=estimateWinProbForCard(c);
+        const badge=document.createElement('div'); badge.className='winProb'; badge.textContent = Math.round(prob*100)+'%';
+        // Color map: red→yellow→green
+        const hue = Math.round( prob*120 ); // 0=red,120=green
+        badge.style.borderColor = 'hsl('+hue+', 80%, 55%)';
+        badge.style.color = '#cfe3ff';
+        badge.style.background = 'linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.25))';
+        // Tooltip with derivation
+        const tip = explainWinProb(c, prob);
+        badge.setAttribute('data-tip', tip);
+        if(wrap) wrap.appendChild(badge);
+      }
+      bindTooltips();
+    }catch(_){ }
+  }
+  const meta=document.getElementById('handMeta'); if(meta){ const nLegal=legal.length; meta.textContent=nLegal+' von '+handSorted.length+' legal'; }
+  bindTooltips();
+}
+
+/* Scoring */
+function endRound(){
+  if(!hasGame()) return;
+  const roundScores=G.piles.map(pp=>pp.reduce((sum,c)=>sum+(PVAL[c.rank]||0),0));
+  for(let p=0;p<tour.N;p++){ roundScores[p]+=(G.jokers&&G.jokers[p]? G.jokers[p]:0); }
+  for(let p2=0;p2<tour.N;p2++){ const made=(G.trickWins&&G.trickWins[p2]? G.trickWins[p2]:0)>0; if(G.ansage&&G.ansage[p2]){ roundScores[p2]= made? roundScores[p2]*2 : 0; } else if(tour.danger&&tour.danger[p2]){ roundScores[p2]*=2; } }
+  const nextDanger=Array(tour.N).fill(false);
+  for(let q=0;q<tour.N;q++){ const tw=(G.trickWins&&G.trickWins[q]? G.trickWins[q]:0); if(tw===0){ if(tour.danger&&tour.danger[q]){ roundScores[q]-=10; nextDanger[q]=false; } else { nextDanger[q]=true; } } }
+  // Risiko‑Multiplikator GML
+  // Basispunkte clampen: keine negativen Rohwerte in dieser Variante
+  const base=roundScores.map(v=>Math.max(0, v));
+  // Gewinner bestimmen: alle Spieler mit maximalem Basispunktwert
+  const maxBase=Math.max.apply(null, base);
+  const winners=[]; for(let i=0;i<base.length;i++){ if(base[i]===maxBase) winners.push(i); }
+  const gml = (typeof computeGML==='function'? computeGML() : (G._raiseMultiplier||1)) || 1;
+  for(let i=0;i<Math.max(tour.N,base.length);i++){
+    const isRaised = Array.isArray(raiseVotes) ? (raiseVotes[i]===true) : false;
+    const isWinner = winners.indexOf(i)!==-1;
+    let delta = base[i];
+    if(isRaised){
+      if(isWinner){ delta = base[i] * gml; }
+      else {
+        // Verlust: –Basispunkte × (GML – 1)
+        delta = - base[i] * Math.max(0, gml - 1);
+      }
+    }
+    tour.totals[i]=(tour.totals[i]||0)+delta;
+    if(!Array.isArray(tour.lastRoundDelta)) tour.lastRoundDelta=Array(tour.N).fill(0);
+    tour.lastRoundDelta[i]=delta;
+  }
+  tour.danger=nextDanger; renderScore(); logPlay('Rundenpunkte: '+roundScores.join(' · '));
+  // Kurze Anzeige der Rundenscores
+  (function showRoundScores(){
+    const b=document.createElement('div'); b.className='banner show'; b.style.position='fixed'; b.style.bottom='18px'; b.style.left='50%'; b.style.transform='translateX(-50%)'; b.style.background='#0f1420'; b.style.borderColor='var(--ok)'; b.innerHTML='<div><b>Runde:</b> '+roundScores.join(' · ')+'</div>'; document.body.appendChild(b); setTimeout(()=>b.remove(), 1200);
+  })();
+  let maxScore=-1e9, winner=-1; for(let u=0;u<tour.totals.length;u++){ if(tour.totals[u]>maxScore){ maxScore=tour.totals[u]; winner=u; } }
+  if(maxScore>=tour.target){ G.phase='done'; bannerGameOver(winner); logPlay('Spielende – Sieger p'+winner); }
+  else { G.phase='end'; logPlay('Runde beendet – Neue Runde startet...'); setTimeout(()=>{ try{ newRound(); }catch(_){ } }, 1400); }
+  tutEmit('round:end');
+}
+function bannerGameOver(winner){ const b=document.createElement('div'); b.className='banner show'; b.style.position='fixed'; b.style.bottom='18px'; b.style.left='50%'; b.style.transform='translateX(-50%)'; b.style.background='#112015'; b.style.borderColor='var(--ok)'; b.innerHTML='<div><b>Spielende:</b> Sieger <span class="pill pcRow pc'+winner+'">p'+winner+'</span></div><div class="hud"><button class="btn" id="btnCloseWin">OK</button></div>'; document.body.appendChild(b); const c=document.getElementById('btnCloseWin'); if(c) c.onclick=()=>b.remove(); }
+
+/* Hilfe */
+function toggleHelp(on){ helpOverlay.classList.toggle('show',!!on); helpOverlay.setAttribute('aria-hidden', on? 'false':'true'); if(!on) clearHelpHighlights(); }
+function clearHelpHighlights(){ document.querySelectorAll('.help-hl').forEach(x=>x.classList.remove('help-hl')); }
+function highlightTargets(sel){ clearHelpHighlights(); if(!sel) return; try{ document.querySelectorAll(sel).forEach(n=>n.classList.add('help-hl')); }catch(e){} }
+if(btnHelp){ btnHelp.addEventListener('click',()=>{ const to=!helpOverlay.classList.contains('show'); toggleHelp(to); showWinProbs = !!to; renderHands(); }); }
+if(btnHandHelp){ btnHandHelp.addEventListener('click',()=>{ try{ showWinProbs = !showWinProbs; renderHands(); }catch(_){ } }); }
+if(btnHelpClose){ btnHelpClose.addEventListener('click',()=>toggleHelp(false)); }
+if(helpOverlay){ helpOverlay.addEventListener('click',e=>{ if(e.target.classList.contains('help-bg')) toggleHelp(false); }); }
+const helpItems=document.querySelectorAll('.help-item'); helpItems.forEach(it=>{ const sel=it.getAttribute('data-target'); it.addEventListener('mouseenter',()=>highlightTargets(sel)); it.addEventListener('mouseleave',()=>clearHelpHighlights()); });
+// Help overlay content already describes elements; removed separate demo alert
+if(btnTutorial){ btnTutorial.addEventListener('click',()=>{ try{ if(TUT.active){ tutStop(); } else { tutStart(); } } catch(e){ console.error('Tutorial start error', e); try{ tutBuild(); tutStart(); }catch(e2){ console.error('Tutorial hard fail', e2); } } }); }
+if(btnSettings && settingsOverlay){ btnSettings.addEventListener('click',()=>{ settingsOverlay.style.display='flex'; }); }
+if(btnSettingsClose && settingsOverlay){ btnSettingsClose.addEventListener('click',()=>{ settingsOverlay.style.display='none'; }); }
+
+/* Tutorial – an neue Pre‑Flow‑Reihenfolge angepasst */
+  const TUT={active:false,step:0,steps:[],safetyTimer:null, mastered:{}, lastShowAt:0, errorThisStep:false};
+function coachPosTo(el){ const r=safeRect(el); let x=r.left+Math.min(r.width,340)+12; let y=r.top+4; if(x+360>innerWidth) x=r.left+r.width-360; if(y+160>innerHeight) y=Math.max(10,innerHeight-180); coach.style.left=x+'px'; coach.style.top=y+'px'; }
+  function coachShow(html,targetSel,lockNext){
+  const total=Math.max(1,(TUT.steps||[]).length); const pct=Math.max(0,Math.min(100,Math.round(((TUT.step+1)/total)*100)));
+    coach.innerHTML=
+      '<div class="t-title pixel-title">Tutorial</div>'+
+      '<div class="t-progress"><i style="width:'+pct+'%"></i></div>'+
+      '<div class="t-body">'+html+'</div>'+
+      '<div class="t-actions">'+
+        '<button class="btn" id="tNext"'+(lockNext?' disabled':'')+'>Weiter</button>'+
+        '<button class="btn" id="tEnd">Beenden</button>'+
+      '</div>';
+  coach.classList.add('show'); const mask=document.getElementById('coachMask'); if(mask) mask.classList.add('show');
+  TUT.errorThisStep=false; TUT.lastShowAt=Date.now();
+  const target=document.querySelector(targetSel); if(target){ highlightTargets(targetSel); coachPosTo(target); }
+    const n=document.getElementById('tNext'); const e=document.getElementById('tEnd');
+    if(n) n.onclick=()=>tutNext(true);
+    if(e) e.onclick=()=>tutStop();
+  // Always allow immediate continue
+  try{ const nx=document.getElementById('tNext'); if(nx) nx.disabled=false; }catch(_){ }
+}
+function coachHide(){ coach.classList.remove('show'); const mask=document.getElementById('coachMask'); if(mask) mask.classList.remove('show'); clearHelpHighlights(); clearTimeout(TUT.safetyTimer); }
+  function tutBuild(){
+    TUT.steps=[
+      { id:'intro', sel:'#cardLegend', wait:null, html:'Ziel: Erreiche als Erster die Zielpunktzahl. Werte und Reihenfolgen stehen in der kompakten Legende.' },
+      { id:'autoStart', sel:'#preControls', wait:'round:new', html:'Neue Runde: Oben siehst du Top (Gold) und Reserve (Silber). Die Vorphase läuft reihum in drei Schritten.' },
+      { id:'preRisk', sel:'#preControls', wait:null, html:'Schritt 1 – Ansage: Wähle <b>Risiko‑Modus</b> (für 2×/3×) oder <b>Sicherer Modus</b>. GML skaliert am Rundenende – bei Verlust gilt die Abzugsregel.' },
+      { id:'preSwap', sel:'#topTrump', wait:null, html:'Schritt 2 – Trumpfkarte tauschen: Lege eine Handkarte ab, die neue Top bestimmt die Trumpffarbe. Nach dem Tausch geht es automatisch weiter.' },
+      { id:'preJoker', sel:'#preControls', wait:'phase:pre:done', html:'Schritt 3 – Joker ablegen: Tausche deinen Joker für +7 und einen virtuellen Stich oder passe. Danach startet die Stichphase.' },
+      { id:'playLead', sel:'#yourHand', wait:'play:human:card', html:'Stich: Spiele eine <span style="color:var(--ok)">grün</span> markierte Karte. Farbzwang beachten. Hilfe‑Button zeigt Gewinnwahrscheinlichkeiten.' },
+      { id:'playAi', sel:'#trickZone', wait:'play:trick:full', html:'Alle spielen. Die Gewinnerkarte wird hervorgehoben; per Hover siehst du die Begründung.' },
+      { id:'eval', sel:'#trickControls', wait:'trick:finalized', html:'Auswertung: „Weiter“ übernimmt den Stich. Ein Countdown löst automatisch aus, kann aber gestoppt werden.' },
+      { id:'round', sel:'#scoreWrap', wait:'round:end', html:'Rundenwertung: GML anwenden – Sieger mit Ansage erhalten ×GML, Verlierer mit Ansage −Basispunkte×(GML−1), andere unverändert.' }
+    ];
+  }
+function tutStart(){ TUT.active=true; TUT.step=0; tutBuild(); tutShowStep(); if(!hasGame()) newRound(); }
+function tutStop(){ TUT.active=false; coachHide(); }
+function tutNext(){ if(!TUT.active) return; TUT.step++; if(TUT.step>=TUT.steps.length){ tutStop(); return; } tutShowStep(); }
+function tutShowStep(){ if(!TUT.active) return; let st=TUT.steps[TUT.step]; if(!st){ tutStop(); return; }
+  // Skip mastered steps except those that initialize game flow
+  let guard=0; while(st && TUT.mastered[st.id] && st.id!=='autoStart' && st.id!=='loop' && guard<10){ TUT.step++; st=TUT.steps[TUT.step]; guard++; }
+  if(!st){ tutStop(); return; }
+  if(st.id==='autoStart'){ if(!hasGame()||G.phase==='end'||G.phase==='done'){ if(!tour.totals.length) resetTournament(); newRound(); } }
+  coachShow(st.html, st.sel, !!st.wait);
+}
+function tutEmit(evt){ if(!TUT.active) return; const st=TUT.steps[TUT.step]; if(st && st.wait===evt){
+  // Mark mastery if user solved quickly without errors
+  const elapsed=Date.now()-TUT.lastShowAt; if(!TUT.errorThisStep && elapsed<=4000){ TUT.mastered[st.id]=true; }
+  const nextBtn=document.getElementById('tNext'); if(nextBtn) nextBtn.disabled=false; setTimeout(()=>{ if(TUT.active) tutNext(); },500);
+} }
+  function tutDemo(){ /* removed demo button */ }
+window.addEventListener('resize', ()=>{ if(coach.classList.contains('show')){ const st=TUT.steps[TUT.step]; if(st){ const target=document.querySelector(st.sel); if(target) coachPosTo(target); } } });
+
+  /* Simple pre-phase self test */
+  if(btnSelfTest){ btnSelfTest.addEventListener('click',()=>{ try{
+    if(!hasGame()||G.phase!=='pre'){ newRound(); return; }
+    playLog && (playLog.textContent='[SelfTest] start\n'+(playLog.textContent||''));
+    // Force deterministic decisions for test
+    const origRand = Math.random;
+    Math.random = ()=>0.8; // bias to YES and to swap path
+    // Step 0: all vote yes
+    G.preStepIndex=0; G.decidedPre=Array(tour.N).fill(false); raiseVotes=Array(tour.N).fill(null);
+    for(let i=0;i<tour.N;i++){ G.preCursor=i; raiseVotes[i]=true; G.decidedPre[i]=true; updateRaiseAccepted(); }
+    // Step → 1: each performs swap if possible
+    G.preStepIndex=1; G.decidedPre=Array(tour.N).fill(false);
+    for(let i=0;i<tour.N;i++){ G.preCursor=i; try{ preAIStep(i); }catch(_){ G.decidedPre[i]=true; } }
+    // Step → 2: joker drop if any
+    G.preStepIndex=2; G.decidedPre=Array(tour.N).fill(false);
+    for(let i=0;i<tour.N;i++){ G.preCursor=i; try{ preAIStep(i); }catch(_){ G.decidedPre[i]=true; } }
+    // Finish
+    Math.random = origRand;
+    advancePreCursor();
+    showToast('SelfTest abgeschlossen');
+  }catch(e){ console.error(e); showToast('SelfTest Fehler: '+e.message); } }); }
+
+/* Dev Tests */
+function runDevTests(){ try{
+  const d=makeDeck(); if(d.length!==36) throw new Error('Decklen != 36'); for(let i=0;i<d.length;i++){ if(!d[i]||!d[i].suit||!d[i].rank) throw new Error('undef Karte im Deck'); }
+  const r1=compareTrick([{player:0,card:{suit:'clubs',rank:'J'}},{player:1,card:{suit:'spades',rank:'X'}}],0,null,[false,false]); if(r1.winner!==1) throw new Error('Joker > Bube erwartet');
+  const r2=compareTrick([{player:0,card:{suit:'hearts',rank:'9'}},{player:1,card:{suit:'clubs',rank:'A'}},{player:2,card:{suit:'hearts',rank:'A'}}],0,null,[false,false,false]); if(r2.winner!==2) throw new Error('Herz A sollte gewinnen');
+  const t=[{player:0,card:{suit:'hearts',rank:'X'}},{player:1,card:{suit:'hearts',rank:'A'}},{player:2,card:{suit:'hearts',rank:'10'}}];
+  const er=compareTrick(t,0,'hearts',[false,false,false]); if(er.winner!==0) throw new Error('EvalFlow Joker sollte gewinnen');
+  const lm=legalMoves([{suit:'hearts',rank:'7'},{suit:'clubs',rank:'A'}],'hearts','spades',false); if(lm.length!==1||lm[0].suit!=='hearts' || lm[0].rank==='J') throw new Error('legalMoves follow suit fehlerhaft');
+  const ts=topcardTrump({suit:'hearts',rank:'J'}); if(ts!==null) throw new Error('Top‑Jack sollte trumpSuit=null');
+  const handFS=[{suit:'spades',rank:'X'},{suit:'hearts',rank:'J'},{suit:'clubs',rank:'A'}]; if(canFollow(handFS,'hearts')!==false) throw new Error('canFollow false (Joker/Bube zählen nicht)');
+  const lm2=legalMoves(handFS,'hearts','spades',false); if(lm2.length!==3) throw new Error('Ohne Follow‑Zwang alle 3 Karten erlaubt');
+  const handFS2=[{suit:'hearts',rank:'7'},{suit:'hearts',rank:'J'},{suit:'spades',rank:'X'},{suit:'clubs',rank:'A'}];
+  const lm3=legalMoves(handFS2,'hearts','spades',false); const okOnlyNormals=lm3.every(c=>c.suit==='hearts' && c.rank!=='J' && c.rank!=='X'); if(!(lm3.length===1 && okOnlyNormals)) throw new Error('Follow‑Suit‑Check ignoriert Joker/Bube nicht korrekt');
+  // Ansage‑Regression: Ansager‑Trumpf zählt nicht als Trumpf in der Lead‑Ermittlung (Standardregel hier deaktiviert)
+  const trick=[{player:0,card:{suit:'hearts',rank:'A'}},{player:1,card:{suit:'clubs',rank:'K'}}];
+  const resAns=compareTrick(trick,0,'hearts',[true,false]); if(RULE_ANSAGE_TRUMP_COUNTS_AS_LEAD){ if(resAns.winner!==0) throw new Error('Ansage (Standard): Herz A sollte führen'); } else { if(resAns.winner!==1) throw new Error('Ansage (Streng): K sollte gewinnen'); }
+  // AI picks: must follow hearts when possible
+  const handAI=[{suit:'hearts',rank:'7'},{suit:'spades',rank:'X'}]; const choice=pickCardAI(handAI,{leadSuit:'hearts',trumpSuit:'spades',ansage:false}); if(!choice||choice.suit!=='hearts'||choice.rank!=='7') throw new Error('AI folgt nicht korrekt der Farbe (hearts 7 erwartet)');
+  logPlay('[Test] OK');
+ }catch(e){ logPlay('[Test] FAIL: '+e.message); console.error(e); }
+}
+
+/* Scale‑Slider */
+function setScalePct(pct){ const clamped=Math.max(60,Math.min(160,parseInt(pct,10)||100)); const sc=BASE_SCALE*(clamped/100); const mn=sc*SCALE_RATIO; document.documentElement.style.setProperty('--scale',sc); document.documentElement.style.setProperty('--mini',mn); localStorage.setItem('MB3_SCALE_PCT',String(clamped)); renderTopTrump(); renderTrick(); renderHands(); }
+function initScaleUI(){ const slider=document.getElementById('uiScale'); const label=document.getElementById('uiScaleLabel'); if(!slider||!label) return; const saved=parseInt(localStorage.getItem('MB3_SCALE_PCT')||'100',10); slider.value=String(Math.max(60,Math.min(160,saved))); label.textContent=slider.value+'%'; setScalePct(slider.value); slider.addEventListener('input',()=>{ label.textContent=slider.value+'%'; setScalePct(slider.value); }); }
+
+  /* Sounds (simple beeps) – moved to enhanced block below */
+const sounds=(function(){
+  let ctx=null; function ac(){ if(!ctx){ const A=window.AudioContext||window.webkitAudioContext; if(A) ctx=new A(); } return ctx; }
+  let muted=JSON.parse(localStorage.getItem('MB3_MUTE')||'false');
+  let userVol = (function(){ try{ const v=parseInt(localStorage.getItem('MB3_VOLUME_PCT')||'60',10); return Math.max(0, Math.min(1, (isFinite(v)?v:60)/100)); }catch(_){ return 0.6; } })();
+  function beep(freq,dur,vol){ freq=freq||880; dur=(dur===undefined)?0.05:dur; vol=(vol===undefined)?0.06:vol; if(muted||userVol<=0) return; const a=ac(); if(!a) return; const o=a.createOscillator(); const g=a.createGain(); o.type='sine'; o.frequency.value=freq; g.gain.value=Math.max(0, vol*userVol); o.connect(g); g.connect(a.destination); const t=a.currentTime; o.start(t); o.stop(t+dur); }
+  return {
+    set muted(v){ muted=!!v; localStorage.setItem('MB3_MUTE',JSON.stringify(muted)); },
+    get muted(){ return muted; },
+    set volumePct(p){ const n=parseInt(p,10); const clamped=Math.max(0, Math.min(100, isFinite(n)?n:60)); userVol=clamped/100; localStorage.setItem('MB3_VOLUME_PCT', String(clamped)); },
+    get volumePct(){ return Math.round(userVol*100); },
+    hover(){ beep(740,.03,.04); }, play(){ beep(660,.05,.06); }, place(){ beep(520,.06,.07); }, win(){ beep(1040,.08,.08); setTimeout(()=>beep(1240,.08,.08),90); }
+  };
+})();
+
+/* Toast helper */
+function showToast(msg){ try{ let t=document.querySelector('.toast'); if(!t){ t=document.createElement('div'); t.className='toast'; document.body.appendChild(t); } t.textContent=String(msg||''); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1400); }catch(_){ }
+}
+
+/* Settings Export/Import */
+function getSettingsJSON(){ return JSON.stringify({ scalePct: localStorage.getItem('MB3_SCALE_PCT')||'100', mute: sounds.muted, players:(uiPlayers&&uiPlayers.value)||'3', target:(uiTarget&&uiTarget.value)||'200', jokerBonus:(uiJokerB&&uiJokerB.value)||'15', spriteMap }, null, 2); }
+function doExport(){ const data=getSettingsJSON(); try{ navigator.clipboard.writeText(data); alert('JSON in die Zwischenablage kopiert.'); }catch(e){ prompt('JSON kopieren:',data); } }
+function doImportAll(){ const txt=prompt('JSON einfügen:'); if(!txt) return; try{ const obj=JSON.parse(txt); if(obj.spriteMap){ spriteMap=obj.spriteMap; localStorage.setItem('MB3_SPRITEMAP_V3', JSON.stringify(spriteMap)); } if(obj.scalePct){ localStorage.setItem('MB3_SCALE_PCT', String(obj.scalePct)); } if(typeof obj.mute==='boolean'){ sounds.muted=obj.mute; if(uiMute) uiMute.checked=obj.mute; } if(obj.players&&uiPlayers) uiPlayers.value=String(obj.players); if(obj.target&&uiTarget) uiTarget.value=String(obj.target); if(obj.jokerBonus&&uiJokerB) uiJokerB.value=String(obj.jokerBonus); setMapStatus(); initScaleUI(); resetTournament(); renderTopTrump(); renderTrick(); renderHands(); updateRoundInfo(); alert('Import abgeschlossen.'); }catch(e){ alert('Import fehlgeschlagen: '+e.message); } }
+if(btnExport) btnExport.addEventListener('click',doExport);
+if(btnImportAll) btnImportAll.addEventListener('click',doImportAll);
+if(uiMute){ uiMute.addEventListener('change',()=>{ sounds.muted=uiMute.checked; }); uiMute.checked=JSON.parse(localStorage.getItem('MB3_MUTE')||'false'); }
+// Volume slider init (after sounds is defined)
+if(uiVolume && uiVolumeLabel){ try{ const saved=parseInt(localStorage.getItem('MB3_VOLUME_PCT')||'60',10); uiVolume.value=String(saved); uiVolumeLabel.textContent=saved+'%'; sounds.volumePct = saved; uiVolume.addEventListener('input',()=>{ const v=parseInt(uiVolume.value||'60',10); sounds.volumePct=v; uiVolumeLabel.textContent=v+'%'; }); }catch(_){ /* ignore */ } }
+
+/* Init */
+function lazyPreload(){ const urls=[ASSET_URLS.hearts,ASSET_URLS.diamonds,ASSET_URLS.clubs,ASSET_URLS.spades]; (window.requestIdleCallback||function(cb){setTimeout(cb,500)})(()=>{ urls.forEach(u=>{ const img=new Image(); img.decoding='async'; img.loading='eager'; img.src=u; }); }); }
+function init(){ bindTooltips(); setMapStatus(); resetTournament(); initScaleUI(); renderTopTrump(); renderTrick(); renderHands(); updateRoundInfo(); btnPrephaseDone.disabled=true; runDevTests(); lazyPreload(); }
+init();
+</script>
+<script>
+// Multiplayer bridge (postMessage)
+// Sends state snapshots up to the parent and applies snapshots from parent when in viewer mode.
+(function(){
+  const BRIDGE_VERSION = '1.0.0';
+  let viewerMode = false; // when true, apply incoming snapshots and disable inputs
+  let lastSentAt = 0;
+
+  function snapshotState(){
+    try {
+      if(!G) return null;
+      return {
+        v: BRIDGE_VERSION,
+        tour,
+        G: {
+          phase: G.phase,
+          leader: G.leader,
+          trumpSuit: G.trumpSuit,
+          top: G.top,
+          reserve: !!G.reserve, // do not leak card
+          trick: G.trick,
+          trickWins: G.trickWins,
+          ansage: G.ansage,
+          jokers: G.jokers,
+          trumpSwapped: G.trumpSwapped,
+          topHistory: Array.isArray(G.topHistory) ? G.topHistory : [],
+          topSwapDiscards: Array.isArray(G.topSwapDiscards) ? G.topSwapDiscards : [],
+          jokerDiscards: Array.isArray(G.jokerDiscards) ? G.jokerDiscards : [],
+          preCursor: G.preCursor,
+          decidedPre: G.decidedPre,
+          _evalRes: G._evalRes
+        }
+      };
+    } catch(e){ return null; }
+  }
+
+  function applySnapshot(snap){
+    try{
+      if(!snap || !snap.G) return;
+      // Only apply display-safe fields; never override full hands/deck.
+      if(!G) return;
+      const SG = snap.G;
+      G.phase = SG.phase;
+      G.leader = SG.leader;
+      G.trumpSuit = SG.trumpSuit;
+      G.top = SG.top;
+      // reserve stays boolean in snapshot; keep our local placeholder
+      G.trick = Array.isArray(SG.trick) ? SG.trick.slice() : [];
+      G.trickWins = SG.trickWins ? SG.trickWins.slice() : G.trickWins;
+      G.ansage = SG.ansage ? SG.ansage.slice() : G.ansage;
+      G.jokers = SG.jokers ? SG.jokers.slice() : G.jokers;
+      G.trumpSwapped = SG.trumpSwapped ? SG.trumpSwapped.slice() : G.trumpSwapped;
+      G.topHistory = Array.isArray(SG.topHistory) ? SG.topHistory.slice() : [];
+      G.topSwapDiscards = Array.isArray(SG.topSwapDiscards) ? SG.topSwapDiscards.slice() : [];
+      G.jokerDiscards = Array.isArray(SG.jokerDiscards) ? SG.jokerDiscards.slice() : [];
+      G.preCursor = SG.preCursor;
+      G.decidedPre = SG.decidedPre ? SG.decidedPre.slice() : G.decidedPre;
+      G._evalRes = SG._evalRes || null;
+      // Re-render
+      renderScore();
+      renderTopTrump();
+      renderTrick();
+      renderHands();
+      updateRoundInfo();
+    }catch(e){ /* ignore */ }
+  }
+
+  function postSnapshot(debounced){
+    if(!window.parent) return;
+    if(debounced){
+      const now = Date.now();
+      if(now - lastSentAt < 80) return; // ~12.5 fps cap
+      lastSentAt = now;
+    }
+    const snap = snapshotState();
+    if(snap){
+      window.parent.postMessage({ type:'POKEMONZ_STATE', payload: snap }, '*');
+    }
+  }
+
+  // Intercept key game events to emit snapshots and emotes
+  const logPlayOrig = logPlay;
+  logPlay = function(s){ try{ logPlayOrig(s); } finally{ postSnapshot(true); } };
+
+  // Emote click -> send to parent
+  (function(){ try{
+    const emotes=document.querySelectorAll('#emotes [data-emote]');
+    let last=0; emotes.forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const now=Date.now(); if(now-last<1000) return; last=now; const emoji=btn.getAttribute('data-emote')||''; try{ window.parent && window.parent.postMessage({ type:'POKEMONZ_EMOTE', payload:emoji }, '*'); }catch(_){ }
+        const el=document.getElementById('emoteToast'); if(el){ el.textContent=emoji; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1200); }
+      });
+    });
+  }catch(_){}})();
+
+  const renderTrickOrig = renderTrick;
+  renderTrick = function(){ try{ renderTrickOrig(); } finally{ postSnapshot(true); } };
+
+  const finalizeTrickOrig = finalizeTrick;
+  finalizeTrick = function(){ try{ finalizeTrickOrig(); } finally{ postSnapshot(false); } };
+
+  const newRoundOrig = newRound;
+  newRound = function(){ try{ newRoundOrig(); } finally{ postSnapshot(false); } };
+
+  // UI lock when in viewer mode
+  function setViewerMode(on){
+    viewerMode = !!on;
+    const disable = viewerMode;
+    [btnHelp, btnTutorial, btnNewRound, btnPrephaseDone, btnImportMap, btnToggleAnsage, btnOpferJoker, btnSwapTop]
+      .filter(Boolean).forEach(b=>{ b.disabled = disable; });
+  }
+
+  // Listen to parent commands
+  window.addEventListener('message', (ev)=>{
+    const msg = ev.data;
+    if(!msg || typeof msg !== 'object') return;
+    switch(msg.type){
+      case 'POKEMONZ_VIEWER_MODE':
+        setViewerMode(!!msg.payload);
+        break;
+      case 'POKEMONZ_APPLY_STATE':
+        applySnapshot(msg.payload);
+        break;
+      case 'POKEMONZ_EMOTE_SHOW': {
+        try{
+          // Prefer anchor on p0 scoreboard card
+          const hostCard=document.querySelector('#scoreWrap .scCard.pc0');
+          if(hostCard){
+            let b=hostCard.querySelector('.emote-bubble');
+            if(!b){ b=document.createElement('div'); b.className='emote-bubble'; hostCard.style.position='relative'; hostCard.appendChild(b); }
+            b.textContent=msg.payload||''; b.classList.add('show');
+            setTimeout(()=>{ b && b.classList.remove('show'); }, 1200);
+          } else {
+            const el=document.getElementById('emoteToast'); if(el){ el.textContent=msg.payload||''; el.classList.add('show'); setTimeout(()=>{ el.classList.remove('show'); }, 1200); }
+          }
+        }catch(_){ }
+        break; }
+      case 'POKEMONZ_RAISE_PROMPT': {
+        const modal=document.getElementById('raisePrompt'); if(!modal) break; modal.classList.add('show');
+        const acc=document.getElementById('btnRaiseAccept'); const dec=document.getElementById('btnRaiseDecline');
+        const handler=(accepted)=>{ try{ window.parent && window.parent.postMessage({ type:'POKEMONZ_RAISE_RESPONSE', payload:{ accepted }}, '*'); }catch(_){ } modal.classList.remove('show'); };
+        if(acc) acc.onclick=()=>handler(true);
+        if(dec) dec.onclick=()=>handler(false);
+        break; }
+      case 'POKEMONZ_RAISE_RESULT': {
+        const ok = !!(msg.payload && msg.payload.accepted); if(ok){ logPlay('Einsatz angenommen: Punkte x2.'); } else { logPlay('Einsatz abgelehnt: +8 Sofortpunkte für Initiator.'); }
+        break; }
+      case 'POKEMONZ_ACTION':
+        // Future: allow controlled actions if needed
+        break;
+      default:
+        break;
+    }
+  });
+
+  // Initial announce
+  setTimeout(()=>postSnapshot(false), 200);
+})();
+
+// Debug/Test visibility
+function isDebugMode(){ try{ const qs=new URLSearchParams(location.search); if(qs.get('debug')==='1') return true; }catch(_){ } try{ return JSON.parse(localStorage.getItem('MB3_DEBUG')||'false'); }catch(_){ return false; } }
+if(btnSelfTest){ try{ btnSelfTest.style.display = isDebugMode()? '' : 'none'; }catch(_){ } }
+
+// Sticky Action Bar removed
+
+// Legend Mini-Demos removed
+</script>
+</body>
+</html>
+

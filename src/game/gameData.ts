@@ -113,7 +113,7 @@ export const allCards: Card[] = [
   },
   {
     name: "Vladimir Putin",
-    imagePath: "/cards/VladimirPutin.png",
+    imagePath: "/cards/WladimirPutin.png",
     charisma: 7,
     leadership: 10,
     influence: 9,
@@ -124,7 +124,7 @@ export const allCards: Card[] = [
   },
   {
     name: "Markus Söder",
-    imagePath: "/cards/MarkusSöder.png",
+    imagePath: "/cards/MarkusSoder.png",
     charisma: 7,
     leadership: 7,
     influence: 5,

@@ -8,6 +8,7 @@ jest.mock('../network/webrtc', () => ({
   removeMessageHandler: jest.fn(),
   isConnected: jest.fn(),
   sendCategorySelection: jest.fn(),
+  sendGameState: jest.fn(),
   localPlayerId: 'test-player-id',
   disconnect: jest.fn(),
   MessageType: {
@@ -26,7 +27,7 @@ describe('P2PGameManager', () => {
   let mockGame: GameContext | null = null;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
 
     // Create a test game manager with event tracking
     gameManager = new P2PGameManager('TestPlayer', {
@@ -44,7 +45,8 @@ describe('P2PGameManager', () => {
   });
 
   test('should initialize a game correctly', () => {
-    gameManager.initGame('RemotePlayer');
+    // Initiator initialisiert den Game-State lokal
+    gameManager.initGame('RemotePlayer', true);
     const game = gameManager.getGame();
 
     expect(game).not.toBeNull();
@@ -55,48 +57,47 @@ describe('P2PGameManager', () => {
   });
 
   test('should handle category selection correctly', () => {
-    // Initialize game
-    gameManager.initGame('RemotePlayer');
+    // Initialize game as initiator
+    gameManager.initGame('RemotePlayer', true);
     let game = gameManager.getGame()!;
 
-    // Set up the test game state for category selection
-    game.state = GameState.CATEGORY_SELECTION;
-    game.activePlayer = game.player1; // Set active player to player1
+    // Multiplayer nutzt CATEGORY_SELECTION_BOTH und getrennte Felder pro Spieler
+    game.state = GameState.CATEGORY_SELECTION_BOTH;
 
-    // Simulate handling category selection
+    // Netzwerkverbindung simulieren
+    (webrtc.isConnected as jest.Mock).mockReturnValue(true);
+
+    // Simulate handling category selection for player1
     gameManager.handleCategorySelect(Category.CHARISMA);
 
-    // Verify category was selected
+    // Verify category was selected on player1 side
     game = gameManager.getGame()!;
-    expect(game.selectedCategory).toBe(Category.CHARISMA);
+    expect(game.selectedCategory1).toBe(Category.CHARISMA);
     expect(webrtc.sendCategorySelection).toHaveBeenCalledWith(Category.CHARISMA);
   });
 
-  test('should ignore category selection when not player\'s turn', () => {
-    // Initialize game
-    gameManager.initGame('RemotePlayer');
+  test('should ignore category selection outside selection phase', () => {
+    // Initialize game as initiator
+    gameManager.initGame('RemotePlayer', true);
     let game = gameManager.getGame()!;
 
-    // Set up the test game state for category selection
-    game.state = GameState.CATEGORY_SELECTION;
-    game.activePlayer = game.player2; // Set active player to player2
+    // Outside selection phase
+    game.state = GameState.VALUE_COMPARISON;
 
-    // Capture current game state
     const initialState = { ...game };
 
-    // Try to handle category selection when it's not player's turn
     gameManager.handleCategorySelect(Category.CHARISMA);
 
-    // Verify nothing changed
     game = gameManager.getGame()!;
     expect(game.state).toBe(initialState.state);
-    expect(game.selectedCategory).toBe(initialState.selectedCategory);
+    expect(game.selectedCategory1).toBe(initialState.selectedCategory1);
+    expect(game.selectedCategory2).toBe(initialState.selectedCategory2);
     expect(webrtc.sendCategorySelection).not.toHaveBeenCalled();
   });
 
   test('should handle remote player info correctly', () => {
-    // Initialize game
-    gameManager.initGame('InitialRemote');
+    // Initialize game as initiator
+    gameManager.initGame('InitialRemote', true);
 
     // Simulate receiving player info message
     mockHandlerFn({
