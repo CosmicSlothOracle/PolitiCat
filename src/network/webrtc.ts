@@ -113,6 +113,16 @@ export async function connectToPeer(signalingServerUrl: string, isInitiator: boo
       console.log(`ICE connection state: ${peerConnection?.iceConnectionState}`);
     };
 
+    // Helper to (re)send an offer (host only)
+    async function sendOffer(){
+      if (!peerConnection || !isInitiator) return;
+      try{
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        sendSignalingMessage({ type: "offer", offer, id: localPlayerId });
+      }catch(err){ console.error('Error creating/sending offer:', err); }
+    }
+
     // Handle signaling messages
     socket.onmessage = async (event) => {
       try {
@@ -120,6 +130,11 @@ export async function connectToPeer(signalingServerUrl: string, isInitiator: boo
 
         // Ignore messages from self
         if (message.id === localPlayerId) return;
+
+        if (message.type === "hello"){
+          // Peer announced presence. Host re-sends offer so late joiners receive it.
+          if (isInitiator) { await sendOffer(); }
+        }
 
         if (message.type === "offer" && peerConnection) {
           await peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
@@ -153,16 +168,10 @@ export async function connectToPeer(signalingServerUrl: string, isInitiator: boo
 
       socket.onopen = async () => {
         try {
-          // Only initiator starts offer
-          if (peerConnection && isInitiator) {
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            sendSignalingMessage({
-              type: "offer",
-              offer,
-              id: localPlayerId
-            });
-          }
+          // Announce presence to the room so the other peer can request/trigger offer
+          sendSignalingMessage({ type: 'hello', id: localPlayerId, role: isInitiator? 'host':'guest' });
+          // Host also sends an initial offer (in case both are already connected)
+          if (peerConnection && isInitiator) { await sendOffer(); }
           resolve(true);
         } catch (error) {
           console.error("Error creating offer:", error);
