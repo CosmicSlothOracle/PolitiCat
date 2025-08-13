@@ -78,6 +78,23 @@ export const P2PGamePage: React.FC = () => {
     });
   }, [playerName, connectionStatus]);
 
+  // Announce ourselves once the data channel is open
+  const trySendSelfInfo = useCallback(() => {
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries++;
+      try {
+        if (isConnected()) {
+          sendPlayerInfo({ name: playerName, deck: [], isAI: false } as any);
+          clearInterval(timer);
+        }
+      } catch {}
+      if (tries >= 40) { // ~6s max
+        clearInterval(timer);
+      }
+    }, 150);
+  }, [playerName]);
+
   // Handle room creation (as host)
   const handleCreateRoom = useCallback(async () => {
     if (!gameManager) return;
@@ -117,6 +134,8 @@ export const P2PGamePage: React.FC = () => {
           next[1] = { name: remoteName || 'Waiting…', connected: false, isAI: false };
           return next;
         });
+        // Announce self when channel is ready so guest marks host connected
+        trySendSelfInfo();
       } else {
         setConnectionError('Failed to connect to signaling server');
         setConnectionStatus('disconnected');
@@ -151,12 +170,8 @@ export const P2PGamePage: React.FC = () => {
       const success = await connectToPeer(signalingUrlWithRoom, false);
 
       if (success) {
-        // Send our player info to the host
-        sendPlayerInfo({
-          name: playerName,
-          deck: [],
-          isAI: false
-        });
+        // Send our player info (after channel is open)
+        trySendSelfInfo();
 
         // Initialize as non-initiator (will wait for game state)
         gameManager.initGame(remoteName || 'Host', false);
@@ -177,7 +192,7 @@ export const P2PGamePage: React.FC = () => {
       setConnectionError(`Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setConnectionStatus('disconnected');
     }
-  }, [gameManager, roomId, playerName, signalingUrl, remoteName]);
+  }, [gameManager, roomId, playerName, signalingUrl, remoteName, trySendSelfInfo]);
 
   // Category selection handler
   const handleCategorySelect = useCallback((category: Category) => {
