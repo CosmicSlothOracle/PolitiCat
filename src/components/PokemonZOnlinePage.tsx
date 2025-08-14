@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { connectToPeer, disconnect, isConnected, localPlayerId, sendGameState, sendGameAction, sendPlayerInfo } from '../network/webrtc';
+import { AblySync } from '../network/ablySync';
 import MatchmakingModal, { MatchmakingSlot } from './MatchmakingModal';
 // import { GameStateSync } from '../network/stateSync';
 

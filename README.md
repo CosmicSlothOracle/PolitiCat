@@ -1,3 +1,17 @@
+## Realtime state sync (Ably)
+
+To enable Ably-based snapshot sync for `pokemonz-online`:
+
+1. Create a free app at Ably and copy an API key.
+2. Set environment variable `VITE_ABLY_KEY`.
+   - Local dev: create a `.env` file with:
+     
+     ```
+     VITE_ABLY_KEY=YOUR_ABLY_KEY
+     ```
+   - Netlify: Site settings → Build & deploy → Environment → add `VITE_ABLY_KEY`.
+3. Build/deploy as usual. The page will join channel `room:<ROOM_ID>` and mirror snapshots/events.
+
 # POL Project - POLITI CAT Game
 
 ## Project Overview
