@@ -80,6 +80,8 @@ export const PokemonZOnlinePage: React.FC = () => {
         // Relay snapshot to peer using existing game state channel
         // Reuse sendGameState to keep protocol consistent
         sendGameState(msg.payload);
+        // Also mirror to Ably (best-effort)
+        try { AblySync.publishState(msg.payload); } catch {}
       } catch (e) {
         // noop
       }
@@ -87,6 +89,7 @@ export const PokemonZOnlinePage: React.FC = () => {
       try {
         sendGameAction({ kind: 'EMOTE', emoji: msg.payload });
         postToIframe({ type: 'POKEMONZ_EMOTE_SHOW', payload: msg.payload });
+        try { AblySync.publishEvent({ kind: 'EMOTE', emoji: msg.payload }); } catch {}
       } catch {}
     } else if (msg.type === 'POKEMONZ_RAISE_REQUEST' && isConnected()){
       try {
@@ -159,6 +162,40 @@ export const PokemonZOnlinePage: React.FC = () => {
       }
     }catch(e){ setStatus('disconnected'); setError(e instanceof Error ? e.message : 'Unknown error'); }
   }, [roomId, postToIframe, signalingUrl, trySendSelfInfo]);
+
+  // Ably: join channel and subscribe when connected (host and guest)
+  useEffect(() => {
+    let unsubState: (() => void) | undefined;
+    let unsubEvent: (() => void) | undefined;
+    let active = true;
+    (async () => {
+      try {
+        if (status === 'connected' && roomId) {
+          await AblySync.join(roomId, playerName);
+          if (!active) return;
+          unsubState = AblySync.onState((snap: any) => {
+            try {
+              if (snap && snap.G && snap.tour) {
+                postToIframe({ type: 'POKEMONZ_APPLY_STATE', payload: snap });
+              }
+            } catch {}
+          });
+          unsubEvent = AblySync.onEvent((evt: any) => {
+            try {
+              if (evt && evt.kind === 'EMOTE' && evt.emoji) {
+                postToIframe({ type: 'POKEMONZ_EMOTE_SHOW', payload: evt.emoji });
+              }
+            } catch {}
+          });
+        }
+      } catch {}
+    })();
+    return () => {
+      active = false;
+      try { unsubState && unsubState(); } catch {}
+      try { unsubEvent && unsubEvent(); } catch {}
+    };
+  }, [status, roomId, playerName, postToIframe]);
 
   // Handle incoming peer messages: forward snapshots into iframe
   useEffect(()=>{
@@ -234,6 +271,7 @@ export const PokemonZOnlinePage: React.FC = () => {
   }, [postToIframe, isHost]);
 
   const handleReturn = useCallback(()=>{
+    try { AblySync.leave(); } catch {}
     disconnect();
     navigate('/');
   }, [navigate]);
