@@ -235,7 +235,7 @@
 
      /* Win probability badge under hand cards */
      .winProb{ display:flex; align-items:center; justify-content:center; margin-top:4px; padding:2px 6px; border-radius:8px; border:1px solid var(--line); font-size:12px; color:#cfe3ff; background:#142333 }
-    
+
     /* Mobile condensed layout */
     @media (max-width: 720px){
       :root{ --scale:.26; --mini:.16 }
@@ -256,6 +256,10 @@
       #riskDesc{ display:none }
       /* Hand tweaks */
       .hand{ gap:8px; padding-bottom:8px }
+      /* Reserve space for mobile action bar */
+      .wrap{ padding-bottom: 86px }
+      .mobileBar{ position:fixed; left:0; right:0; bottom:0; z-index:950; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom)); background:linear-gradient(180deg,rgba(0,31,63,.96),rgba(0,10,20,.98)); border-top:1px solid var(--line); box-shadow:0 -6px 20px rgba(0,0,0,.35) }
+      .mobileBar .btn{ min-height:48px; font-size:14px }
     }
   </style>
 </head>
@@ -416,6 +420,13 @@
         <button id="btnRaiseAccept" class="btn primary">Annehmen</button>
       </div>
     </div>
+  </div>
+
+  <!-- Mobile action bar (only visible on small screens; wired by script) -->
+  <div class="mobileBar" id="mobileBar" style="display:none">
+    <button id="mbRaise" class="btn">Erhöhen</button>
+    <button id="mbSwap" class="btn">Trumpf tauschen</button>
+    <button id="mbNext" class="btn primary" disabled>Weiter</button>
   </div>
 
   <!-- Hilfe Overlay -->
@@ -1723,6 +1734,30 @@ init();
   // Initial announce
   setTimeout(()=>postSnapshot(false), 200);
 })();
+
+ // Mobile action bar wiring
+ (function(){
+   try{
+     const isMobile = window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+     const bar = document.getElementById('mobileBar');
+     const btnRaise = document.getElementById('mbRaise');
+     const btnSwap = document.getElementById('mbSwap');
+     const btnNext = document.getElementById('mbNext');
+     const btnRaiseTop = document.getElementById('btnRaise');
+     const btnSwapTop = document.getElementById('btnSwapTop');
+     const btnNextTop = document.getElementById('btnPrephaseDone_inline') || document.getElementById('btnPrephaseDone');
+     if(isMobile && bar && btnRaise && btnSwap && btnNext && btnRaiseTop && btnSwapTop && btnNextTop){
+       bar.style.display = 'grid';
+       const syncDisable = () => { btnNext.disabled = !!btnNextTop.disabled; };
+       btnRaise.addEventListener('click', ()=> btnRaiseTop.click());
+       btnSwap.addEventListener('click', ()=> btnSwapTop.click());
+       btnNext.addEventListener('click', ()=> btnNextTop.click());
+       const mo = new MutationObserver(syncDisable);
+       mo.observe(btnNextTop, { attributes:true, attributeFilter:['disabled'] });
+       syncDisable();
+     }
+   }catch(_){ }
+ })();
 
 // Debug/Test visibility
 function isDebugMode(){ try{ const qs=new URLSearchParams(location.search); if(qs.get('debug')==='1') return true; }catch(_){ } try{ return JSON.parse(localStorage.getItem('MB3_DEBUG')||'false'); }catch(_){ return false; } }
