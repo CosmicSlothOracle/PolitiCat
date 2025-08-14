@@ -45,11 +45,11 @@
     .panel{background:linear-gradient(180deg,rgba(0,31,63,.92),rgba(0,10,20,.94));border:2px solid var(--line);border-radius:10px;padding:12px;box-shadow:0 0 20px rgba(0,255,255,0.3)}
     .panel.hidden{display:none}
 
-    .layout{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}
+    .layout{display:grid;grid-template-columns:1.25fr .75fr;gap:14px; align-items:start}
     .hud{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .tag{background:rgba(0,255,255,0.08);border:2px solid var(--line);border-radius:6px;padding:4px 8px;font-size:10px;display:inline-block;color:#00ffff}
 
-    .board{min-height:480px; position:relative}
+    .board{min-height:420px; position:relative}
     .row{margin-top:8px}
 
     .trick{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin:10px 0}
@@ -235,6 +235,28 @@
 
      /* Win probability badge under hand cards */
      .winProb{ display:flex; align-items:center; justify-content:center; margin-top:4px; padding:2px 6px; border-radius:8px; border:1px solid var(--line); font-size:12px; color:#cfe3ff; background:#142333 }
+    
+    /* Mobile condensed layout */
+    @media (max-width: 720px){
+      :root{ --scale:.26; --mini:.16 }
+      .wrap{ max-width: 100%; margin:10px auto; padding:0 10px }
+      header{ position: sticky; top:0; z-index: 900; padding-bottom:6px; background:linear-gradient(180deg,rgba(0,31,63,.98),rgba(0,10,20,.94)) }
+      .layout{ grid-template-columns: 1fr; gap:10px }
+      .rightcol{ order:3 }
+      /* Hide low-priority sidebar sections on phone */
+      .rightcol .section[data-help="legend"],
+      .rightcol .section[data-help="log"]{ display:none }
+      /* Tighten talon/trumpf area */
+      #topTrump{ min-height: calc(var(--tileH) * var(--mini) * 1.5) }
+      .stack.talonBig{ transform: scale(1.1); margin-right:0 }
+      /* Compact header buttons */
+      .hud .btn{ padding:6px 10px; font-size:12px }
+      #btnSelfTest{ display:none }
+      /* Reduce verbose text in prephase */
+      #riskDesc{ display:none }
+      /* Hand tweaks */
+      .hand{ gap:8px; padding-bottom:8px }
+    }
   </style>
 </head>
 <body>
@@ -248,7 +270,7 @@
         <button id="btnTutorial" class="btn" data-tip="Geführtes Tutorial starten/fortsetzen">Tutorial</button>
         <button id="btnNewRound" class="btn primary" data-tip="Neue Runde: mischen, austeilen, Top/Trumpf aufdecken">Neue Runde</button>
         <button id="btnSelfTest" class="btn" data-tip="Vorphasen‑Selbsttest ausführen">Test</button>
-        <button id="btnPrephaseDone" class="btn primary" style="border-width:3px; box-shadow:0 0 18px rgba(0,255,255,0.7)" data-tip="Vorphase: Deine Entscheidung speichern & weiter" disabled>Weiter (Vorphase)</button>
+        <button id="btnPrephaseDone" class="btn primary" style="border-width:3px; box-shadow:0 0 18px rgba(0,255,255,0.7)" data-tip="Vorphase: Deine Entscheidung speichern & weiter" disabled>Weiter</button>
         <div id="emotes" class="hud" style="gap:6px; margin-left:6px">
           <button class="btn" data-emote="🦄" title="Emote">🦄</button>
           <button class="btn" data-emote="👾" title="Emote">👾</button>
@@ -304,12 +326,12 @@
     <div class="panel hidden" id="preControls" data-help="prephase">
       <div class="hud" style="flex-wrap:wrap; gap:10px; align-items:center">
         <span id="preStepPill" class="pill" style="display:none">Modus: <b id="preStepLabel"></b></span>
-        <button id="btnRaise" class="btn" data-tip="Risiko: Gewinn ×2/×3, Verlust: Abzug der Basispunkte (bei ×3 doppelt)">Risiko‑Modus</button>
+        <button id="btnRaise" class="btn" data-tip="Risiko: Gewinn ×2/×3, Verlust: Abzug der Basispunkte (bei ×3 doppelt)">Erhöhen</button>
         <button id="btnRaiseNo" class="btn" data-tip="Sicherer Modus: keine Risiko-Beteiligung">Sicherer Modus</button>
         <span id="riskDesc" class="subtitle" style="margin-left:auto; max-width:520px">Traust du dich, aufs Ganze zu gehen? Wenn du den Multiplikator setzt und gewinnst, bekommst du doppelte oder sogar dreifache Punkte. Aber Vorsicht: Verlierst du, dann gehen alle Punkte dieser Runde in den Keller – und bei Dreifach sogar doppelt so tief.</span>
         <button id="btnSwapTop" class="btn" data-tip="Trumpfkarte tauschen: Lege 1 Handkarte ab – neue Topkarte wird aufgedeckt (1× in der Vorphase).">Trumpfkarte tauschen</button>
         <button id="btnOpferJoker" class="btn" data-tip="Joker ablegen: +7 Punkte und +1 virtueller Stich">Joker ablegen +7</button>
-        <button id="btnPrephaseDone_inline" class="btn primary" style="border-width:3px; box-shadow:0 0 18px rgba(0,255,255,0.7)" data-tip="Vorphase: Deine Entscheidung speichern & weiter" disabled>Weiter (Bereit 0/0)</button>
+        <button id="btnPrephaseDone_inline" class="btn primary" style="border-width:3px; box-shadow:0 0 18px rgba(0,255,255,0.7)" data-tip="Vorphase: Deine Entscheidung speichern & weiter" disabled>Weiter</button>
       </div>
       <div id="preMeter"></div>
       <div class="subtitle" id="preHint"></div>
