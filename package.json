@@ -10,16 +10,17 @@
     "server": "node server.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
     "react": "^18.2.0",
     "react-app-polyfill": "^3.0.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.12.1",
     "react-touch-events": "^3.0.0",
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
     "ws": "^8.13.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.3",
     "@types/react": "^19.1.2",

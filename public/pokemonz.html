@@ -986,6 +986,8 @@ function renderTrickControls(){
 /* Turn flow */
 const SPEED={ humanToTrick:360, aiBetween:460, resolvePause:700, postResolve:420, preAI:480 };
 let aiTimer=null; let evalTimer=null; let evalCountdownTimer=null; let evalAutoDeadline=0;
+// Human inactivity guard during pre-phase (auto-pass)
+let preIdleTimer=null;
 function currentPlayer(){ return (G.leader + G.trick.length) % tour.N; }
 
 /* ===== NEW: Simple but safe AI card picker (fixes ReferenceError) ===== */
@@ -1133,7 +1135,7 @@ document.addEventListener('mouseout', function(ev){ try{
   const badge=document.getElementById('trumpPreviewBadge'); if(badge){ badge.remove(); }
 }catch(_){}});
 
-function preHumanDone(){ if(!hasGame()||G.phase!=='pre') return; const p=G.preCursor; if(p!==0) return; G.decidedPre[p]=true; btnPrephaseDone.disabled=true; advancePreCursor(); }
+function preHumanDone(){ if(!hasGame()||G.phase!=='pre') return; const p=G.preCursor; if(p!==0) return; try{ clearTimeout(preIdleTimer); preIdleTimer=null; }catch(_){} G.decidedPre[p]=true; btnPrephaseDone.disabled=true; advancePreCursor(); }
 if(btnPrephaseDone){ btnPrephaseDone.addEventListener('click', preHumanDone); }
 const btnPrephaseDoneInline=document.getElementById('btnPrephaseDone_inline');
 if(btnPrephaseDoneInline){ btnPrephaseDoneInline.addEventListener('click', ()=>{ try{ if(!hasGame()||G.phase!=='pre') return; if(typeof G.preStepIndex==='number' && G.preStepIndex===1 && G.preCursor===0){ // treat as pass in swap step
@@ -1202,6 +1204,8 @@ function preAIStep(p){ if(!hasGame()||G.phase!=='pre') return; if(typeof G.preSt
 }
 
 function advancePreCursor(){
+  // clear human idle guard whenever cursor advances
+  try{ clearTimeout(preIdleTimer); preIdleTimer=null; }catch(_){ }
   renderPreMeter();
   // Nächsten unentschiedenen finden
   let next=-1; for(let k=0;k<tour.N;k++){ const idx=(G.leader + k) % tour.N; if(!G.decidedPre[idx]){ next=idx; break; } }
@@ -1223,6 +1227,7 @@ function advancePreCursor(){
     }
     // Alle drei Schritte abgeschlossen → Stichphase starten
     try{ swapArmed=false; if(preStepPill) preStepPill.style.display='none'; }catch(_){ }
+    try{ clearTimeout(preIdleTimer); preIdleTimer=null; }catch(_){ }
     G.phase='play'; updateRoundInfo(); renderTopTrump(); renderPreDiscards(); renderHands(); renderTrick();
     logPlay('Vorphase beendet – Stichphase startet.'); tutEmit('phase:pre:done');
     if((G.leader % tour.N)!==0) scheduleAI();
@@ -1240,6 +1245,29 @@ function advancePreCursor(){
     }catch(_){ }
     updatePreControlsVisibility();
     renderHands();
+    // Human inactivity auto-pass per step to avoid getting stuck
+    try{
+      if(typeof G.preStepIndex==='number' && G.preCursor===0 && !(G.decidedPre && G.decidedPre[0])){
+        const step=G.preStepIndex; const ms = (step===0? 6000 : (step===1? 8000 : 6000));
+        clearTimeout(preIdleTimer);
+        preIdleTimer=setTimeout(()=>{
+          try{
+            if(!hasGame() || G.phase!=='pre' || G.preCursor!==0 || (G.decidedPre && G.decidedPre[0])) return;
+            if(step===0){
+              // Default to safe mode
+              try{ if(!Array.isArray(raiseVotes)) resetRaiseVotes(); }catch(_){ }
+              try{ raiseVotes[0]=false; updateRaiseAccepted(); }catch(_){ }
+              G.decidedPre[0]=true; logPlay('Auto: p0 wählt Sicherer Modus (Timeout).');
+            } else if(step===1){
+              G.decidedPre[0]=true; logPlay('Auto: p0 passt (Trumpf tauschen)');
+            } else if(step===2){
+              G.decidedPre[0]=true; logPlay('Auto: p0 passt (Joker)');
+            }
+            advancePreCursor();
+          }catch(_){ }
+        }, ms);
+      }
+    }catch(_){ }
     // Auto-skip for Joker step when human has no Joker
     try{
       if(G.preStepIndex===2){
