@@ -295,6 +295,23 @@ export const PokemonZOnlinePage: React.FC = () => {
     }
   }, []);
 
+  const shareInvite = useCallback(async () => {
+    if (!inviteLink) return;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Join my POLITI CAT room',
+          text: `Room ${roomId}`,
+          url: inviteLink
+        });
+      } else {
+        await copyText(inviteLink);
+      }
+    } catch {
+      // user cancelled or share failed; ignore
+    }
+  }, [inviteLink, roomId, copyText]);
+
   if(status !== 'connected'){
     return (
       <div className="setup-screen">
@@ -351,6 +368,7 @@ export const PokemonZOnlinePage: React.FC = () => {
               <>
                 <span style={{marginLeft:8}}>
                   <button className="play-button" onClick={()=>copyText(inviteLink)}>Copy Invite</button>
+                  <button className="play-button" style={{marginLeft:8}} onClick={shareInvite}>Share</button>
                 </span>
               </>
             )}

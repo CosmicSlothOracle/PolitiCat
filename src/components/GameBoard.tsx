@@ -18,7 +18,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ game, onCategorySelect, onNextPha
       state === GameState.RESOLVE_WINNER ||
       state === GameState.VALUE_COMPARISON
     ) {
-      comparisonBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const isMobile = typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(max-width: 768px)').matches;
+      if (!isMobile) {
+        comparisonBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       comparisonBarRef.current?.classList.add('focus-glow');
       setTimeout(() => {
         comparisonBarRef.current?.classList.remove('focus-glow');

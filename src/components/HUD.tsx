@@ -52,7 +52,7 @@ export const HUD: React.FC<HUDProps> = ({
   }, [isCategorySelectable, onCategorySelect]);
 
   return (
-    <div className="hud-container" style={{ margin: '32px auto 0 auto', maxWidth: 700 }}>
+    <div className="hud-container">
       <div className="phase-indicator">
         <strong>{phaseLabels[gameState]}</strong>
       </div>

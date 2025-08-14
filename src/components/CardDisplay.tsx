@@ -81,7 +81,7 @@ const CardDisplay: React.FC<CardDisplayProps> = ({
         <>
           <h3 className="card-name">{card.name}</h3>
           <div className="card-image-container">
-            <img src={card.imagePath} alt={card.name} className="card-image" />
+            <img src={card.imagePath} alt={card.name} className="card-image" loading="lazy" decoding="async" />
           </div>
           {isVisible && (
             <div className="card-attributes">

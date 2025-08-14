@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GameBoard from './GameBoard';
 import { GameLogger } from '../ui/GameLogger';
@@ -80,6 +80,17 @@ export const P2PGamePage: React.FC = () => {
       return next;
     });
   }, [playerName, connectionStatus]);
+
+  // Prefill room from URL param if present
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const rm = params.get('room');
+      if (rm) setRoomId(rm.toUpperCase());
+    } catch (_) {
+      // ignore
+    }
+  }, []);
 
   // Announce ourselves once the data channel is open
   const trySendSelfInfo = useCallback(() => {
@@ -222,6 +233,43 @@ export const P2PGamePage: React.FC = () => {
     navigate('/');
   }, [navigate]);
 
+  // Invite link helpers
+  const inviteLink = useMemo(() => {
+    if (!roomId) return '';
+    try {
+      const base = window.location.origin;
+      return `${base}/multiplayer?room=${roomId}`;
+    } catch {
+      return '';
+    }
+  }, [roomId]);
+
+  const copyText = useCallback(async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('Copied to clipboard');
+    } catch {
+      prompt('Copy this text:', text);
+    }
+  }, []);
+
+  const shareInvite = useCallback(async () => {
+    if (!inviteLink) return;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Join my POLITI CAT room',
+          text: `Room ${roomId}`,
+          url: inviteLink
+        });
+      } else {
+        await copyText(inviteLink);
+      }
+    } catch {
+      // user cancelled or share failed; ignore
+    }
+  }, [inviteLink, roomId, copyText]);
+
   // Connect to signaling server with room ID
   useEffect(() => {
     const cleanupResources = () => {
@@ -303,7 +351,16 @@ export const P2PGamePage: React.FC = () => {
           {isHost && roomId && (
             <div className="room-info">
               Your Room Code: <span className="room-code">{roomId}</span>
-              <p className="room-instructions">Share this code with your friend to join</p>
+              <p className="room-instructions">Share this code or invite link with your friend to join</p>
+              {inviteLink && (
+                <div className="invite">
+                  Invite Link: <span className="invite-link">{inviteLink}</span>
+                  <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                    <button className="play-button" onClick={() => copyText(inviteLink)}>Copy</button>
+                    <button className="play-button" onClick={shareInvite}>Share</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
